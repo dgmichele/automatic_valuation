@@ -1,0 +1,9 @@
+node_modules/
+instructions/
+inspiration-files/
+dist/
+logs/
+.env.dev
+.env.production
+.env.test
+*.log

@@ -18,6 +18,9 @@ Backend API RESTful per un sistema di **valutazione automatica immobiliare** nel
 - **Logging:** `console.log()` nei punti critici + Winston su file
 - **Environment:** `.env.dev` (localhost + pgAdmin locale) e `.env.production` (Netsons/cPanel)
 - **Commenti:** Sempre presenti, in italiano, compatti ma dettagliati
+- **Esecuzione dei task:** Quando ti viene assegnato un task, devi limitarti a quel task e non aggiungere altri task o funzionalità non richieste. Una volta completato il task, devi informare l'utente che hai completato il task.
+  Ad esempio, in riferimento al punto 14, ossia l'ordine di sviluppo, se ti dico di procedere con la prima task della FASE 1, tu devi procedere con la prima task della FASE 1 e non aggiungere altro. In questo modo renderemo il processo di sviluppo più efficiente e ordinato. Se quanto fatto è approvato e soprattutto non hai riscontrato imprevisti, sarò io a dirti di andare avanti, altrimenti analizzeremo il problema insieme.
+
 - **Cartella inspiration-files:** Contiene file di esempio e spunti da consultare per facilitare lo sviluppo, non devono essere inclusi nel progetto finale.
 
 ---

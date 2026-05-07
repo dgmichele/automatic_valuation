@@ -1,6 +1,6 @@
 node_modules/
-instructions/
 inspiration-files/
+instructions/
 dist/
 logs/
 .env.dev

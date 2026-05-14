@@ -9,10 +9,13 @@ export class AppError extends Error {
   public readonly code: string;
   public readonly isOperational: boolean;
 
-  constructor(statusCode: number, code: string, message?: string) {
+  public readonly details: any;
+
+  constructor(statusCode: number, code: string, message?: string, details?: any) {
     super(message || code);
     this.statusCode = statusCode;
     this.code = code;
+    this.details = details;
     // Gli errori operazionali sono quelli previsti (es. OUTSIDE_AREA, NOT_FOUND)
     // Gli errori non operazionali sono bug inattesi (statusCode 500)
     this.isOperational = statusCode < 500;

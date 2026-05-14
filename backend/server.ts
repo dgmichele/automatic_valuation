@@ -82,7 +82,11 @@ app.get('/', (_req, res) => {
 });
 
 // ============= ROUTES API =============
-// Le route vengono aggiunte progressivamente nelle fasi successive
+import geoRoutes from './routes/geo.routes';
+import valuationRoutes from './routes/valuation.routes';
+
+app.use('/api/geo', geoRoutes);
+app.use('/api/valuations', valuationRoutes);
 
 // ============= 404 HANDLER =============
 app.use((req, res) => {

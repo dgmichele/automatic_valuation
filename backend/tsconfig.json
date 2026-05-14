@@ -9,7 +9,8 @@
     "rootDir": "./",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "types": ["jest", "node"]
   },
   "include": [
     "**/*.ts"
@@ -17,7 +18,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "__tests__",
     "emails"
   ]
 }

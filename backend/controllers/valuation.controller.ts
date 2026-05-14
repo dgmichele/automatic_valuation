@@ -80,6 +80,7 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
       terrace: validatedData.terrace,
       box: validatedData.box,
       garden: validatedData.garden,
+      windows: validatedData.windows,
       min_value: result.min_value,
       max_value: result.max_value,
       avg_value: result.avg_value,

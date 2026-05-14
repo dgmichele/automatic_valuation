@@ -40,6 +40,8 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('terrace').notNullable();
     table.boolean('box').notNullable();
     table.boolean('garden').notNullable();
+    // Solo Negozio: No | Sì / 1 | Sì / 2
+    table.string('windows', 10).nullable();
 
     // --- Dati lead ---
     table.string('first_name', 100).notNullable();

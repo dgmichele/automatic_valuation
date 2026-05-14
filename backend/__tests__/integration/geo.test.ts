@@ -12,7 +12,7 @@ describe('GET /api/geo/lookup', () => {
     const res = await request(app).get('/api/geo/lookup');
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
-    expect(res.body.code).toBe('BAD_REQUEST');
+    expect(res.body.error.code).toBe('BAD_REQUEST');
   });
 
   it('should return 400 if lat or lon are not numbers', async () => {
@@ -25,7 +25,7 @@ describe('GET /api/geo/lookup', () => {
     // Coordinate Via Palestro 3, Ivrea (dal PRD)
     const res = await request(app).get('/api/geo/lookup?lat=45.4654&lon=7.8732');
     
-    if (res.status === 404 && res.body.code === 'OUTSIDE_AREA') {
+    if (res.status === 404 && res.body.error?.code === 'OUTSIDE_AREA') {
       console.warn('⚠️ Test skipped or failed: Coordinates might be outside area if polygons are not fully loaded or coordinates differ.');
       return;
     }
@@ -40,6 +40,6 @@ describe('GET /api/geo/lookup', () => {
     // Roma center
     const res = await request(app).get('/api/geo/lookup?lat=41.9028&lon=12.4964');
     expect(res.status).toBe(404);
-    expect(res.body.code).toBe('OUTSIDE_AREA');
+    expect(res.body.error.code).toBe('OUTSIDE_AREA');
   });
 });

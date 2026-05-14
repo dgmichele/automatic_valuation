@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as geoService from '../services/geo.service';
 import { logInfo } from '../services/logger.service';
 import { AppError } from '../utils/AppError';
+import { GeoZone, ApiResponse } from '../types/shared';
 
 /**
  * GET /api/geo/lookup
@@ -10,7 +11,7 @@ import { AppError } from '../utils/AppError';
  */
 export const lookup = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { lat, lon } = req.query;
+    const { lat, lon, address } = req.query;
 
     if (!lat || !lon) {
       throw new AppError(400, 'BAD_REQUEST', 'Latitudine e longitudine sono obbligatorie');
@@ -23,14 +24,16 @@ export const lookup = async (req: Request, res: Response, next: NextFunction) =>
       throw new AppError(400, 'BAD_REQUEST', 'Latitudine e longitudine devono essere numeri validi');
     }
 
-    logInfo(`[GEO_CONTROLLER] Lookup per lat: ${latitude}, lon: ${longitude}`);
+    logInfo(`[GEO_CONTROLLER] Lookup per lat: ${latitude}, lon: ${longitude}${address ? `, address: ${address}` : ''}`);
 
     const zone = await geoService.identifyZone(latitude, longitude);
 
-    return res.status(200).json({
+    const response: ApiResponse<GeoZone> = {
       success: true,
       data: zone
-    });
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     next(error);
   }

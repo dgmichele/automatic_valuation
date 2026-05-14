@@ -7,6 +7,8 @@ import * as crmService from '../services/crm.service';
 import { logInfo, logError } from '../services/logger.service';
 import db from '../config/db';
 import { AppError } from '../utils/AppError';
+import { ApiResponse } from '../types/shared';
+import { ValuationResult } from '../types/valuation';
 
 /**
  * Schema di validazione per la richiesta di valutazione
@@ -121,10 +123,12 @@ export const create = async (req: Request, res: Response, next: NextFunction) =>
     });
 
     // 6. Risposta al client
-    return res.status(201).json({
+    const response: ApiResponse<ValuationResult> = {
       success: true,
       data: result
-    });
+    };
+
+    return res.status(201).json(response);
 
   } catch (error) {
     if (error instanceof z.ZodError) {

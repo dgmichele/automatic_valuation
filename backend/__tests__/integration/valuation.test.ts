@@ -39,8 +39,8 @@ describe('POST /api/valuations', () => {
       .send({ email: 'invalid' });
     
     expect(res.status).toBe(400);
-    expect(res.body.code).toBe('VALIDATION_ERROR');
-    expect(res.body.details).toBeDefined();
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.details).toBeDefined();
   });
 
   it('should create a valuation and return 201 for valid data', async () => {
@@ -48,12 +48,12 @@ describe('POST /api/valuations', () => {
       .post('/api/valuations')
       .send(validPayload);
 
-    if (res.status === 404 && res.body.code === 'OUTSIDE_AREA') {
+    if (res.status === 404 && res.body.error?.code === 'OUTSIDE_AREA') {
         console.warn('⚠️ Test skipped: Coordinates might be outside area in current polygons.json');
         return;
     }
 
-    if (res.status === 404 && res.body.code === 'NOT_FOUND') {
+    if (res.status === 404 && res.body.error?.code === 'NOT_FOUND') {
         console.warn('⚠️ Test skipped: OMI values not found in DB for this tipologia/zona');
         return;
     }

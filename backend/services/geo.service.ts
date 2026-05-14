@@ -4,6 +4,7 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { AppError } from '../utils/AppError';
 import { logInfo, logError } from './logger.service';
 import db from '../config/db';
+import { GeoZone } from '../types/shared';
 
 let polygonsData: any = null;
 
@@ -30,7 +31,7 @@ export const loadPolygons = () => {
  * @param lon Longitudine
  * @returns I dati della zona OMI dal database
  */
-export const identifyZone = async (lat: number, lon: number) => {
+export const identifyZone = async (lat: number, lon: number): Promise<GeoZone> => {
   if (!polygonsData || !polygonsData.features) {
     throw new AppError(500, 'SERVER_ERROR', 'I dati geografici non sono ancora caricati');
   }

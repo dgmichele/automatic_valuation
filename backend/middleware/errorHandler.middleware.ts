@@ -29,9 +29,11 @@ export const errorHandler = (
 
     res.status(err.statusCode).json({
       success: false,
-      code: err.code,
-      message: err.message,
-      ...(err.details && { details: err.details })
+      error: {
+        code: err.code,
+        message: err.message,
+        ...(err.details && { details: err.details })
+      }
     });
     return;
   }
@@ -41,10 +43,12 @@ export const errorHandler = (
 
   res.status(500).json({
     success: false,
-    code: 'INTERNAL_SERVER_ERROR',
-    message:
-      process.env.NODE_ENV === 'production'
-        ? 'Si è verificato un errore interno. Riprova più tardi.'
-        : err.message,
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message:
+        process.env.NODE_ENV === 'production'
+          ? 'Si è verificato un errore interno. Riprova più tardi.'
+          : err.message,
+    }
   });
 };

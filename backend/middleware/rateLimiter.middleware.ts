@@ -15,8 +15,10 @@ export const geoLookupLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    code: 'TOO_MANY_REQUESTS',
-    message: 'Troppe richieste. Riprova tra qualche minuto.',
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Troppe richieste. Riprova tra qualche minuto.',
+    }
   },
 });
 
@@ -28,7 +30,9 @@ export const valuationLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    code: 'TOO_MANY_REQUESTS',
-    message: 'Troppe richieste di valutazione. Riprova tra qualche minuto.',
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Troppe richieste di valutazione. Riprova tra qualche minuto.',
+    }
   },
 });

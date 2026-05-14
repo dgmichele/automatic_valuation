@@ -42,6 +42,10 @@ logInfo('[SERVER] Ambiente: ' + (process.env.NODE_ENV || 'development'));
 // ============= INIZIALIZZAZIONE APP =============
 const app: Application = express();
 
+import { loadPolygons } from './services/geo.service';
+// Carica i poligoni OMI in memoria all'avvio
+loadPolygons();
+
 // ============= MIDDLEWARE GLOBALI =============
 
 // Security headers

@@ -42,6 +42,12 @@ logInfo('[SERVER] Ambiente: ' + (process.env.NODE_ENV || 'development'));
 // ============= INIZIALIZZAZIONE APP =============
 const app: Application = express();
 
+// Trust proxy su cPanel/Netsons per ricevere l'IP reale del client
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+  logInfo('[SERVER] 🔒 Trust proxy abilitato per la produzione');
+}
+
 import { loadPolygons } from './services/geo.service';
 // Carica i poligoni OMI in memoria all'avvio
 loadPolygons();

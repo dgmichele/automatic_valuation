@@ -1,11 +1,12 @@
 import winston from 'winston';
 import path from 'path';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 /**
  * logger.service.ts — Configurazione Winston per logging centralizzato.
  *
- * Dev: output colorato su console + file.
- * Prod: solo file (combined.log + error.log).
+ * Dev: output colorato su console + file con rotazione.
+ * Prod: solo file con rotazione giornaliera (application-%DATE%.log + error-%DATE%.log).
  */
 
 const logsDir = path.resolve(__dirname, '..', 'logs');
@@ -28,14 +29,24 @@ const consoleFormat = winston.format.combine(
 );
 
 const transports: winston.transport[] = [
-  // Log di tutti i livelli (info, warn, error, ecc.)
-  new winston.transports.File({
-    filename: path.join(logsDir, 'combined.log'),
+  // Log di tutti i livelli con rotazione giornaliera
+  new DailyRotateFile({
+    dirname: logsDir,
+    filename: 'application-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '10m',
+    maxFiles: '14d',
     format: fileFormat,
   }),
-  // Log solo degli errori
-  new winston.transports.File({
-    filename: path.join(logsDir, 'error.log'),
+  // Log solo degli errori con rotazione giornaliera
+  new DailyRotateFile({
+    dirname: logsDir,
+    filename: 'error-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '10m',
+    maxFiles: '14d',
     level: 'error',
     format: fileFormat,
   }),

@@ -11,7 +11,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "jsx": "react-jsx",
-    "types": ["jest", "node"]
+    "types": ["node"]
   },
   "include": [
     "**/*.ts",
@@ -20,6 +20,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "inspiration-files"
+    "inspiration-files",
+    "__tests__"
   ]
 }

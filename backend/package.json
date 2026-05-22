@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "ts-node server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node -e \"require('fs').cpSync('data', 'dist/data', {recursive: true, force: true})\"",
     "start": "node dist/server.js",
     "migrate:make": "knex migrate:make --knexfile db/knexfile.ts -x ts",
     "migrate:latest": "knex migrate:latest --knexfile db/knexfile.ts",

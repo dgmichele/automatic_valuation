@@ -6,17 +6,25 @@ export interface ValuationPayload {
   sqm: number;
   condition: 'Nuova costruzione' | 'Ristrutturato' | 'In buono stato' | 'Non ristrutturato';
   rooms: string;
-  bathrooms: '1' | '2' | '3' | '3+';
-  floor: string;
+  // Condizionale: null per tipologie senza piano specifico (Villa, Casa ind., Negozio)
+  bathrooms?: '1' | '2' | '3' | '3+' | null;
+  // Condizionale: null per tipologie senza piano specifico (Villa, Casa ind., Negozio)
+  floor?: string | null;
   build_year?: number;
   energy_class: string;
   heating: 'Autonomo' | 'Centralizzato' | 'Assente';
-  elevator: boolean;
-  balconies: 'No' | '1' | '2+';
-  terrace: boolean;
-  box: boolean;
-  garden: boolean;
-  windows?: 'No' | '1' | '2+';
+  // Condizionale: null per tipologie senza ascensore (Villa, Casa ind., Negozio)
+  elevator?: boolean | null;
+  // Condizionale: null per Negozio
+  balconies?: 'No' | '1' | '2+' | null;
+  // Condizionale: null per Ufficio e Negozio
+  terrace?: boolean | null;
+  // Condizionale: null per Ufficio e Negozio
+  box?: boolean | null;
+  // Condizionale: null per Ufficio e Negozio
+  garden?: boolean | null;
+  // Solo Negozio
+  windows?: 'No' | '1' | '2+' | null;
   intent: string;
   first_name: string;
   last_name: string;

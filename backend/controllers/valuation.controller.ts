@@ -21,17 +21,32 @@ const valuationSchema = z.object({
   sqm: z.number().positive(),
   condition: z.enum(['Nuova costruzione', 'Ristrutturato', 'In buono stato', 'Non ristrutturato']),
   rooms: z.string(),
-  bathrooms: z.enum(['1', '2', '3', '3+']),
-  floor: z.string(),
+  // Condizionale: non richiesto per Negozio
+  bathrooms: z.enum(['1', '2', '3', '3+']).optional().nullable()
+    .transform(val => val ?? null),
+  // Condizionale: non richiesto per Villa, Casa ind., Casa semi-ind., Negozio
+  floor: z.string().optional().nullable()
+    .transform(val => (val?.trim() ? val.trim() : null)),
   build_year: z.number().optional().nullable().transform(val => val === null ? undefined : val),
   energy_class: z.string(),
   heating: z.enum(['Autonomo', 'Centralizzato', 'Assente']),
-  elevator: z.boolean(),
-  balconies: z.enum(['No', '1', '2+']),
-  terrace: z.boolean(),
-  box: z.boolean(),
-  garden: z.boolean(),
-  windows: z.enum(['No', '1', '2+']).optional(), // Solo per Negozio
+  // Condizionale: non richiesto per Villa, Casa ind., Casa semi-ind., Negozio
+  elevator: z.boolean().optional().nullable()
+    .transform(val => val ?? null),
+  // Condizionale: non richiesto per Negozio
+  balconies: z.enum(['No', '1', '2+']).optional().nullable()
+    .transform(val => val ?? null),
+  // Condizionale: non richiesto per Ufficio e Negozio
+  terrace: z.boolean().optional().nullable()
+    .transform(val => val ?? null),
+  // Condizionale: non richiesto per Ufficio e Negozio
+  box: z.boolean().optional().nullable()
+    .transform(val => val ?? null),
+  // Condizionale: non richiesto per Ufficio e Negozio
+  garden: z.boolean().optional().nullable()
+    .transform(val => val ?? null),
+  windows: z.enum(['No', '1', '2+']).optional().nullable()
+    .transform(val => val ?? null), // Solo per Negozio
   intent: z.string(),
   first_name: z.string().min(2),
   last_name: z.string().min(2),

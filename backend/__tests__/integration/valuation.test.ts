@@ -1,3 +1,4 @@
+import { describe, it, expect, afterAll } from '@jest/globals';
 import request from 'supertest';
 import app from '../../server';
 import db from '../../config/db';
@@ -43,7 +44,7 @@ describe('POST /api/valuations', () => {
     expect(res.body.error.details).toBeDefined();
   });
 
-  it('should create a valuation and return 201 for valid data', async () => {
+  it('should create a valuation and return 201 for valid Appartamento data', async () => {
     const res = await request(app)
       .post('/api/valuations')
       .send(validPayload);
@@ -71,7 +72,108 @@ describe('POST /api/valuations', () => {
     expect(savedValuation.windows).toBeNull();
   });
 
-  it('should save windows field correctly for Negozio', async () => {
+  it('should accept Negozio payload without residential fields (floor, elevator, balconies, terrace, garden, box, bathrooms)', async () => {
+    // Questo payload rispecchia ESATTAMENTE ciò che invierà il frontend:
+    // per un Negozio quei campi non vengono mostrati, quindi non vengono inviati.
+    const negozioPayload = {
+      lat: 45.4654,
+      lon: 7.8732,
+      address: "Corso Massimo D'Azeglio 12, Ivrea",
+      property_type: 'Negozio',
+      sqm: 60,
+      condition: 'In buono stato',
+      rooms: '1',
+      energy_class: 'G',
+      heating: 'Assente',
+      windows: '1',
+      intent: 'Vendere',
+      first_name: 'Laura',
+      last_name: 'Bianchi',
+      email: 'laura.bianchi.negozio2@example.com',
+      phone: '3339876543'
+      // floor, elevator, balconies, terrace, box, garden, bathrooms → omessi intenzionalmente
+    };
+
+    const res = await request(app)
+      .post('/api/valuations')
+      .send(negozioPayload);
+
+    if (res.status === 404 && res.body.error?.code === 'OUTSIDE_AREA') {
+      console.warn('⚠️ Test skipped: Coordinates outside area');
+      return;
+    }
+    if (res.status === 404 && res.body.error?.code === 'NOT_FOUND') {
+      console.warn('⚠️ Test skipped: OMI values not found for Negozio in this zona');
+      return;
+    }
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+
+    // Verifichiamo che i campi condizionali siano NULL nel DB (non stringa vuota)
+    const savedValuation = await db('valuations').where({ email: negozioPayload.email }).orderBy('id', 'desc').first();
+    expect(savedValuation).toBeDefined();
+    expect(savedValuation.windows).toBe('1');
+    expect(savedValuation.floor).toBeNull();
+    expect(savedValuation.elevator).toBeNull();
+    expect(savedValuation.balconies).toBeNull();
+    expect(savedValuation.terrace).toBeNull();
+    expect(savedValuation.box).toBeNull();
+    expect(savedValuation.garden).toBeNull();
+    expect(savedValuation.bathrooms).toBeNull();
+  });
+
+  it('should accept Villa payload without floor and elevator', async () => {
+    // Per una Villa il frontend non chiede piano né ascensore
+    const villaPayload = {
+      lat: 45.374337,
+      lon: 7.905537,
+      address: 'Via Accotto 4, Strambino',
+      property_type: 'Villa',
+      sqm: 125,
+      condition: 'In buono stato',
+      rooms: '6',
+      bathrooms: '2',
+      build_year: 1985,
+      energy_class: 'D',
+      heating: 'Autonomo',
+      balconies: '2+',
+      terrace: true,
+      box: true,
+      garden: true,
+      intent: 'Voglio vendere entro un anno',
+      first_name: 'Simona',
+      last_name: 'Verdi',
+      email: 'simona.verdi.villa@example.com',
+      phone: '3556452158'
+      // floor e elevator → omessi intenzionalmente
+    };
+
+    const res = await request(app)
+      .post('/api/valuations')
+      .send(villaPayload);
+
+    if (res.status === 404 && res.body.error?.code === 'OUTSIDE_AREA') {
+      console.warn('⚠️ Test skipped: Coordinates outside area');
+      return;
+    }
+    if (res.status === 404 && res.body.error?.code === 'NOT_FOUND') {
+      console.warn('⚠️ Test skipped: OMI values not found for Villa in this zona');
+      return;
+    }
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+
+    // floor e elevator devono essere NULL nel DB
+    const savedValuation = await db('valuations').where({ email: villaPayload.email }).orderBy('id', 'desc').first();
+    expect(savedValuation).toBeDefined();
+    expect(savedValuation.floor).toBeNull();
+    expect(savedValuation.elevator).toBeNull();
+  });
+
+  it('should save windows field correctly for Negozio (legacy payload with all fields)', async () => {
+    // Test di compatibilità: un Negozio con tutti i campi esplicitamente valorizzati
     const negozioPayload = {
       lat: 45.4654,
       lon: 7.8732,

@@ -43,7 +43,7 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
 
   // Ascensore (solo Appartamento e Ufficio)
   if (payload.property_type === 'Appartamento' || payload.property_type === 'Ufficio') {
-    const floorInt = parseInt(payload.floor, 10);
+    const floorInt = parseInt(payload.floor ?? '', 10);
     if (payload.elevator) {
       requestedCoeffs.push({ categoria: 'Ascensore', parametro: 'Presente' });
     } else {
@@ -68,12 +68,14 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
   if (payload.property_type !== 'Negozio') {
     let balconeParam = '';
     if (payload.balconies === 'No') {
-      const isGroundFloor = payload.floor.toLowerCase().includes('terra') || payload.floor === '0';
+      const isGroundFloor = payload.floor
+        ? payload.floor.toLowerCase().includes('terra') || payload.floor === '0'
+        : false;
       balconeParam = isGroundFloor ? 'Assente - piano terra' : 'Assente - altri piani';
       // Fallback a 'Assente' per villa/ufficio
       if (payload.property_type !== 'Appartamento') balconeParam = 'Assente';
     } else {
-      balconeParam = payload.balconies; // '1' o '2+'
+      balconeParam = payload.balconies ?? ''; // '1' o '2+'
     }
     requestedCoeffs.push({ categoria: 'Balcone', parametro: balconeParam });
   }

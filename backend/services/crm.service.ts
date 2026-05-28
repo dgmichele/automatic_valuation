@@ -6,8 +6,10 @@ const MAILERLITE_API_URL = 'https://connect.mailerlite.com/api/subscribers';
 
 /**
  * Converte un booleano nel testo leggibile da Mailerlite.
+ * Restituisce null se il valore è null/undefined (campo non applicabile).
  */
-const boolToSiNo = (val: boolean): string => (val ? 'Sì' : 'No');
+const boolToSiNo = (val: boolean | null | undefined): string | null =>
+  val === null || val === undefined ? null : (val ? 'Sì' : 'No');
 
 /**
  * Formatta un valore numerico come valuta italiana per il CRM.
@@ -29,16 +31,17 @@ export interface LeadData {
   sqm: number;
   condition: string;
   rooms: string;
-  bathrooms: string;
-  floor: string;
+  // Condizionali: null se non applicabile alla tipologia
+  bathrooms?: string | null;
+  floor?: string | null;
   energy_class: string;
   heating: string;
-  elevator: boolean;
-  balconies: string;
-  terrace: boolean;
-  box: boolean;
-  garden: boolean;
-  windows?: string; // Presente solo per Negozio
+  elevator?: boolean | null;
+  balconies?: string | null;
+  terrace?: boolean | null;
+  box?: boolean | null;
+  garden?: boolean | null;
+  windows?: string | null; // Presente solo per Negozio
   intent: string;
 }
 
@@ -71,6 +74,7 @@ export const syncToCRM = async (
 
   // ---- Costruzione mappa campi personalizzati ----
   // Seguendo la mappatura in MAILERLITE_FIELDS.md
+  // Campi sempre presenti
   const fields: Record<string, string> = {
     last_name: leadData.last_name,
     phone: leadData.phone,
@@ -79,25 +83,27 @@ export const syncToCRM = async (
     metri_quadrati: String(leadData.sqm),
     stato_immobile: leadData.condition,
     locali: leadData.rooms,
-    bagni: leadData.bathrooms,
-    piano: leadData.floor,
     classe_energetica: leadData.energy_class,
     riscaldamento: leadData.heating,
-    // Booleani convertiti in "Sì" / "No" (come richiesto nelle note di MAILERLITE_FIELDS.md)
-    ascensore: boolToSiNo(leadData.elevator),
-    balconi: leadData.balconies,
-    terrazzo: boolToSiNo(leadData.terrace),
-    garage: boolToSiNo(leadData.box),
-    giardino: boolToSiNo(leadData.garden),
     richieste_per: leadData.intent,
     // Valore medio formattato come stringa leggibile
     valutazione_media: formatEuroCRM(valuationData.avg_value),
   };
 
-  // Vetrine: campo presente solo per la tipologia Negozio
-  if (leadData.windows) {
-    fields.vetrine = leadData.windows;
-  }
+  // Campi condizionali: aggiunti solo se non null (dipendono dalla tipologia)
+  if (leadData.bathrooms != null)  fields.bagni        = leadData.bathrooms;
+  if (leadData.floor != null)      fields.piano        = leadData.floor;
+  if (leadData.balconies != null)  fields.balconi      = leadData.balconies;
+  if (leadData.windows != null)    fields.vetrine      = leadData.windows;
+
+  const ascensore = boolToSiNo(leadData.elevator);
+  if (ascensore != null)           fields.ascensore    = ascensore;
+  const terrazzo = boolToSiNo(leadData.terrace);
+  if (terrazzo != null)            fields.terrazzo     = terrazzo;
+  const garage = boolToSiNo(leadData.box);
+  if (garage != null)              fields.garage       = garage;
+  const giardino = boolToSiNo(leadData.garden);
+  if (giardino != null)            fields.giardino     = giardino;
 
   // ---- Body della richiesta API Mailerlite v2 ----
   // L'email è l'identificatore principale e non va in "fields"

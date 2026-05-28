@@ -209,4 +209,122 @@ describe('Valuation Service Unit Tests', () => {
     expect(result.max_value).toBe(198000);
     expect(result.avg_value).toBe(181500);
   });
+
+  // --- Nuovi test: campi condizionali nullable ---
+
+  it('should NOT crash when Villa has floor=null (frontend omits field)', async () => {
+    dbMock.mockImplementation((table: string) => {
+      if (table === 'omi_values') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          first: jest.fn<() => Promise<any>>().mockResolvedValue({ min_price: 1500, max_price: 1800 })
+        };
+      }
+      if (table === 'correction_coefficients') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          whereIn: jest.fn<() => Promise<any>>().mockResolvedValue([
+            { categoria: 'Stato', parametro: 'In buono stato', coefficiente: 1.00 },
+            { categoria: 'Giardino', parametro: 'Presente', coefficiente: 1.10 },
+            { categoria: 'Terrazzo', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Box', parametro: 'Presente', coefficiente: 1.00 },
+            { categoria: 'Balcone', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Bagno', parametro: '1', coefficiente: 1.00 }
+          ])
+        };
+      }
+      return {};
+    });
+
+    // floor e elevator assenti come farebbe il frontend per una Villa
+    const payload: ValuationPayload = {
+      ...basePayload,
+      property_type: 'Villa',
+      floor: null,       // frontend non lo invia → normalizzato a null
+      elevator: null,    // frontend non lo invia → normalizzato a null
+      garden: true,
+      box: true,
+      balconies: 'No'
+    };
+
+    // Non deve lanciare TypeError
+    await expect(calculateValuation('E379/D1', payload)).resolves.toBeDefined();
+  });
+
+  it('should NOT crash when Negozio has balconies=null and bathrooms=null', async () => {
+    dbMock.mockImplementation((table: string) => {
+      if (table === 'omi_values') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          first: jest.fn<() => Promise<any>>().mockResolvedValue({ min_price: 1000, max_price: 1200 })
+        };
+      }
+      if (table === 'correction_coefficients') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          whereIn: jest.fn<() => Promise<any>>().mockResolvedValue([
+            { categoria: 'Stato', parametro: 'In buono stato', coefficiente: 1.00 },
+            { categoria: 'Vetrine', parametro: 'Sì / 1', coefficiente: 1.00 }
+          ])
+        };
+      }
+      return {};
+    });
+
+    // Payload realistico dal frontend per un Negozio: omette tutti i campi residenziali
+    const payload: ValuationPayload = {
+      ...basePayload,
+      property_type: 'Negozio',
+      floor: null,
+      elevator: null,
+      balconies: null,
+      terrace: null,
+      box: null,
+      garden: null,
+      bathrooms: null,
+      windows: '1'
+    };
+
+    await expect(calculateValuation('E379/B2', payload)).resolves.toBeDefined();
+  });
+
+  it('should treat floor=null as non-ground-floor when computing isGroundFloor for Appartamento', async () => {
+    dbMock.mockImplementation((table: string) => {
+      if (table === 'omi_values') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          first: jest.fn<() => Promise<any>>().mockResolvedValue({ min_price: 1000, max_price: 1000 })
+        };
+      }
+      if (table === 'correction_coefficients') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          // floor=null → isGroundFloor=false → il service deve richiedere 'Assente - altri piani'
+          whereIn: jest.fn<() => Promise<any>>().mockResolvedValue([
+            { categoria: 'Stato', parametro: 'In buono stato', coefficiente: 1.00 },
+            { categoria: 'Box', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Giardino', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Terrazzo', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Balcone', parametro: 'Assente - altri piani', coefficiente: 0.90 },
+            { categoria: 'Bagno', parametro: '1', coefficiente: 1.00 }
+          ])
+        };
+      }
+      return {};
+    });
+
+    const payload: ValuationPayload = {
+      ...basePayload,
+      floor: null,       // floor null → isGroundFloor deve essere false
+      elevator: true,
+      balconies: 'No',   // innesca il ramo isGroundFloor
+      box: false,
+      garden: false,
+      terrace: false
+    };
+
+    // Con coefficiente Balcone 0.90 su 100mq a 1000€/mq → 90000
+    const result = await calculateValuation('E379/D1', payload);
+    expect(result.min_value).toBe(90000);
+  });
 });

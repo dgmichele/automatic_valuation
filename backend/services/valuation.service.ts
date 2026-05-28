@@ -10,10 +10,15 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
   let omiTipologia = payload.property_type as string;
   if (payload.property_type === 'Casa semi-indipendente') omiTipologia = 'Casa semi indipendente';
   if (payload.property_type === 'Negozio') omiTipologia = 'Negozio / Vetrinato';
+  if (payload.property_type === 'Villa' || payload.property_type === 'Casa indipendente') {
+    omiTipologia = 'Villa / Indipendente';
+  }
   
   let coeffTipologia = payload.property_type as string;
   if (payload.property_type === 'Casa semi-indipendente') coeffTipologia = 'Casa semi indipendente';
-  if (payload.property_type === 'Villa / Indipendente') coeffTipologia = 'Villa / indipendente';
+  if (payload.property_type === 'Villa' || payload.property_type === 'Casa indipendente') {
+    coeffTipologia = 'Villa / indipendente';
+  }
 
   let destinazione = 'Residenziale';
   if (payload.property_type === 'Ufficio' || payload.property_type === 'Negozio') {
@@ -62,7 +67,7 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
   // Balcone (tutti tranne Negozio)
   if (payload.property_type !== 'Negozio') {
     let balconeParam = '';
-    if (payload.balconies === '0') {
+    if (payload.balconies === 'No') {
       const isGroundFloor = payload.floor.toLowerCase().includes('terra') || payload.floor === '0';
       balconeParam = isGroundFloor ? 'Assente - piano terra' : 'Assente - altri piani';
       // Fallback a 'Assente' per villa/ufficio
@@ -81,7 +86,10 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
 
   // Vetrine (solo Negozio)
   if (payload.property_type === 'Negozio' && payload.windows) {
-    requestedCoeffs.push({ categoria: 'Vetrine', parametro: payload.windows });
+    let windowsParam = 'No';
+    if (payload.windows === '1') windowsParam = 'Sì / 1';
+    if (payload.windows === '2+') windowsParam = 'Sì / 2';
+    requestedCoeffs.push({ categoria: 'Vetrine', parametro: windowsParam });
   }
 
   // 4. Recupero e calcolo coefficienti

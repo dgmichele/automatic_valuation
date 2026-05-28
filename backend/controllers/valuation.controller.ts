@@ -17,7 +17,7 @@ const valuationSchema = z.object({
   lat: z.number(),
   lon: z.number(),
   address: z.string(),
-  property_type: z.enum(['Appartamento', 'Villa / Indipendente', 'Casa semi-indipendente', 'Ufficio', 'Negozio']),
+  property_type: z.enum(['Appartamento', 'Villa', 'Casa indipendente', 'Casa semi-indipendente', 'Ufficio', 'Negozio']),
   sqm: z.number().positive(),
   condition: z.enum(['Nuova costruzione', 'Ristrutturato', 'In buono stato', 'Non ristrutturato']),
   rooms: z.string(),
@@ -27,11 +27,11 @@ const valuationSchema = z.object({
   energy_class: z.string(),
   heating: z.enum(['Autonomo', 'Centralizzato', 'Assente']),
   elevator: z.boolean(),
-  balconies: z.enum(['0', '1', '2+']),
+  balconies: z.enum(['No', '1', '2+']),
   terrace: z.boolean(),
   box: z.boolean(),
   garden: z.boolean(),
-  windows: z.enum(['No', 'Sì / 1', 'Sì / 2']).optional(), // Solo per Negozio
+  windows: z.enum(['No', '1', '2+']).optional(), // Solo per Negozio
   intent: z.string(),
   first_name: z.string().min(2),
   last_name: z.string().min(2),

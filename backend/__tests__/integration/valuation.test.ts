@@ -64,7 +64,7 @@ describe('POST /api/valuations', () => {
     expect(res.body.data).toHaveProperty('avg_value');
 
     // Verifichiamo che sia stato salvato nel DB
-    const savedValuation = await db('valuations').where({ email: validPayload.email }).first();
+    const savedValuation = await db('valuations').where({ email: validPayload.email }).orderBy('id', 'desc').first();
     expect(savedValuation).toBeDefined();
     expect(savedValuation.address).toBe(validPayload.address);
     // Appartamento: windows deve essere null
@@ -85,11 +85,11 @@ describe('POST /api/valuations', () => {
       energy_class: 'G',
       heating: 'Assente',
       elevator: false,
-      balconies: '0',
+      balconies: 'No',
       terrace: false,
       box: false,
       garden: false,
-      windows: 'Sì / 1',
+      windows: '1',
       intent: 'Vendere',
       first_name: 'Laura',
       last_name: 'Bianchi',
@@ -114,9 +114,9 @@ describe('POST /api/valuations', () => {
     expect(res.body.success).toBe(true);
 
     // Verifichiamo che il campo windows sia stato salvato nel DB
-    const savedValuation = await db('valuations').where({ email: negozioPayload.email }).first();
+    const savedValuation = await db('valuations').where({ email: negozioPayload.email }).orderBy('id', 'desc').first();
     expect(savedValuation).toBeDefined();
-    expect(savedValuation.windows).toBe('Sì / 1');
+    expect(savedValuation.windows).toBe('1');
   });
 
   it('should return 400 if windows has an invalid value', async () => {

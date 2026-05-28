@@ -131,7 +131,7 @@ describe('Valuation Service Unit Tests', () => {
       return {};
     });
 
-    const payload: ValuationPayload = { ...basePayload, condition: 'Ristrutturato', elevator: false, floor: '3', box: false, balconies: '0' };
+    const payload: ValuationPayload = { ...basePayload, condition: 'Ristrutturato', elevator: false, floor: '3', box: false, balconies: 'No' };
     const result = await calculateValuation('E379/D1', payload);
     
     expect(result.min_value).toBe(82365);
@@ -161,7 +161,7 @@ describe('Valuation Service Unit Tests', () => {
       ...basePayload, 
       property_type: 'Negozio',
       condition: 'Nuova costruzione',
-      windows: 'Sì / 1'
+      windows: '1'
     };
     
     const result = await calculateValuation('E379/B2', payload);
@@ -169,5 +169,44 @@ describe('Valuation Service Unit Tests', () => {
     expect(result.min_value).toBe(180000);
     expect(result.max_value).toBe(216000);
     expect(result.avg_value).toBe(198000);
+  });
+
+  it('should calculate Villa property type mapping to Villa / Indipendente correctly', async () => {
+    dbMock.mockImplementation((table: string) => {
+      if (table === 'omi_values') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          first: jest.fn<() => Promise<any>>().mockResolvedValue({ min_price: 1500, max_price: 1800 })
+        };
+      }
+      if (table === 'correction_coefficients') {
+        return {
+          where: jest.fn().mockReturnThis(),
+          whereIn: jest.fn<() => Promise<any>>().mockResolvedValue([
+            { categoria: 'Stato', parametro: 'In buono stato', coefficiente: 1.00 },
+            { categoria: 'Giardino', parametro: 'Presente', coefficiente: 1.10 },
+            { categoria: 'Terrazzo', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Box', parametro: 'Presente', coefficiente: 1.00 },
+            { categoria: 'Balcone', parametro: 'Assente', coefficiente: 1.00 },
+            { categoria: 'Bagno', parametro: '1', coefficiente: 1.00 }
+          ])
+        };
+      }
+      return {};
+    });
+
+    const payload: ValuationPayload = { 
+      ...basePayload, 
+      property_type: 'Villa',
+      garden: true,
+      box: true,
+      balconies: 'No'
+    };
+    
+    const result = await calculateValuation('E379/D1', payload);
+    
+    expect(result.min_value).toBe(165000);
+    expect(result.max_value).toBe(198000);
+    expect(result.avg_value).toBe(181500);
   });
 });

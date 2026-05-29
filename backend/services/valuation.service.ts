@@ -81,7 +81,7 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
   }
 
   // Bagno (tutti tranne Negozio)
-  if (payload.property_type !== 'Negozio') {
+  if (payload.property_type !== 'Negozio' && payload.bathrooms) {
     const bagnoParam = payload.bathrooms === '1' ? '1' : '2+';
     requestedCoeffs.push({ categoria: 'Bagno', parametro: bagnoParam });
   }

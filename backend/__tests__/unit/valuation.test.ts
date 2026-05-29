@@ -134,7 +134,7 @@ describe('Valuation Service Unit Tests', () => {
     const payload: ValuationPayload = { ...basePayload, condition: 'Ristrutturato', elevator: false, floor: '3', box: false, balconies: 'No' };
     const result = await calculateValuation('E379/D1', payload);
     
-    expect(result.min_value).toBe(82365);
+    expect(result.min_value).toBe(82500);
   });
   
   it('should calculate commercial property (Negozio) correctly', async () => {
@@ -207,7 +207,7 @@ describe('Valuation Service Unit Tests', () => {
     
     expect(result.min_value).toBe(165000);
     expect(result.max_value).toBe(198000);
-    expect(result.avg_value).toBe(181500);
+    expect(result.avg_value).toBe(182000);
   });
 
   // --- Nuovi test: campi condizionali nullable ---

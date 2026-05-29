@@ -119,9 +119,22 @@ export const calculateValuation = async (id_zona: string, payload: ValuationPayl
     logInfo(`[VALUATION_SERVICE] Applicato bonus box di 15.000€ per zona E379/B1`);
   }
 
-  const minValue = Math.round(Number(baseValue.min_price) * payload.sqm * multiplier + bonus);
-  const maxValue = Math.round(Number(baseValue.max_price) * payload.sqm * multiplier + bonus);
-  const avgValue = Math.round((minValue + maxValue) / 2);
+  const roundValuation = (value: number): number => {
+    if (value < 100000) {
+      return Math.round(value / 500) * 500;
+    } else if (value <= 500000) {
+      return Math.round(value / 1000) * 1000;
+    } else {
+      return Math.round(value / 5000) * 5000;
+    }
+  };
+
+  const rawMin = Number(baseValue.min_price) * payload.sqm * multiplier + bonus;
+  const rawMax = Number(baseValue.max_price) * payload.sqm * multiplier + bonus;
+
+  const minValue = roundValuation(rawMin);
+  const maxValue = roundValuation(rawMax);
+  const avgValue = roundValuation((rawMin + rawMax) / 2);
 
   logInfo(`[VALUATION_SERVICE] Calcolo completato: min ${minValue}€, avg ${avgValue}€, max ${maxValue}€`);
 

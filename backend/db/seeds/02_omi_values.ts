@@ -3,7 +3,7 @@ import type { Knex } from "knex";
 /**
  * Seed 02 — Valori OMI per zona e tipologia.
  *
- * Dati estratti da TABLES.md (sezione "Zone OMI").
+ * Dati estratti da TABLES_V2.md (sezione "Zone OMI").
  * Dipende dal seed 01_zones per le FK.
  */
 export async function seed(knex: Knex): Promise<void> {
@@ -16,56 +16,45 @@ export async function seed(knex: Knex): Promise<void> {
     { id_zona: "E379/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
     { id_zona: "E379/B1", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 850, max_price: 950 },
     { id_zona: "E379/B1", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 1050, max_price: 1150 },
-
     { id_zona: "E379/D1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/D1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/D1", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 850, max_price: 950 },
     { id_zona: "E379/D1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
-
     { id_zona: "E379/B2", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1050, max_price: 1150 },
     { id_zona: "E379/B2", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
     { id_zona: "E379/B2", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1150, max_price: 1250 },
     { id_zona: "E379/B2", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 850, max_price: 950 },
     { id_zona: "E379/B2", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 1050, max_price: 1150 },
-
-    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1050, max_price: 1150 },
-    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
-    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1150, max_price: 1250 },
+    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1000, max_price: 1100 },
+    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1300, max_price: 1400 },
+    { id_zona: "E379/C2", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1100, max_price: 1200 },
     { id_zona: "E379/C2", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 850, max_price: 950 },
     { id_zona: "E379/C2", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 1050, max_price: 1150 },
-
-    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
-    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 850, max_price: 950 },
-    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 750, max_price: 850 },
+    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 550, max_price: 650 },
+    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 900, max_price: 1000 },
+    { id_zona: "E379/C1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 800, max_price: 900 },
     { id_zona: "E379/C1", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 500, max_price: 600 },
     { id_zona: "E379/C1", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 600, max_price: 700 },
-
     { id_zona: "E379/D2", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
     { id_zona: "E379/D2", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 850, max_price: 950 },
     { id_zona: "E379/D2", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/D2", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 500, max_price: 600 },
     { id_zona: "E379/D2", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 600, max_price: 700 },
-
     { id_zona: "E379/R4", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 400, max_price: 500 },
     { id_zona: "E379/R4", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/R4", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 650, max_price: 750 },
-
     { id_zona: "E379/R3", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 400, max_price: 500 },
     { id_zona: "E379/R3", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/R3", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 650, max_price: 750 },
-
     { id_zona: "E379/R1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 400, max_price: 500 },
     { id_zona: "E379/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/R1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 650, max_price: 750 },
-
     { id_zona: "E379/D3", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 550 },
     { id_zona: "E379/D3", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/D3", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 650, max_price: 750 },
-
     { id_zona: "E379/D6", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/D6", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/D6", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
-
     { id_zona: "E379/E1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 550 },
     { id_zona: "E379/E1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 750, max_price: 850 },
     { id_zona: "E379/E1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 650, max_price: 750 },
@@ -106,9 +95,9 @@ export async function seed(knex: Knex): Promise<void> {
     { id_zona: "B015/E1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 700, max_price: 800 },
 
     // ===== BUROLO (B279) =====
-    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
-    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1000, max_price: 1100 },
-    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1150, max_price: 1250 },
+    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 550, max_price: 650 },
+    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1050, max_price: 1150 },
+    { id_zona: "B279/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1200, max_price: 1300 },
     { id_zona: "B279/R1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 400, max_price: 500 },
     { id_zona: "B279/R1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 600, max_price: 700 },
     { id_zona: "B279/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 800, max_price: 900 },
@@ -117,17 +106,17 @@ export async function seed(knex: Knex): Promise<void> {
     { id_zona: "B279/D1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 800, max_price: 900 },
 
     // ===== CASCINETTE D'IVREA (B953) =====
-    { id_zona: "B953/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 700, max_price: 800 },
-    { id_zona: "B953/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1000, max_price: 1100 },
+    { id_zona: "B953/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 750, max_price: 850 },
+    { id_zona: "B953/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1050, max_price: 1150 },
     { id_zona: "B953/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1150, max_price: 1250 },
     { id_zona: "B953/R1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
     { id_zona: "B953/R1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 700, max_price: 800 },
     { id_zona: "B953/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 900, max_price: 1000 },
 
     // ===== CHIAVERANO (C624) =====
-    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
-    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 700, max_price: 800 },
-    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1050, max_price: 1150 },
+    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 550, max_price: 650 },
+    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 750, max_price: 850 },
+    { id_zona: "C624/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1100, max_price: 1200 },
     { id_zona: "C624/R1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 500, max_price: 600 },
     { id_zona: "C624/R1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 700, max_price: 800 },
     { id_zona: "C624/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 900, max_price: 1000 },
@@ -193,9 +182,9 @@ export async function seed(knex: Knex): Promise<void> {
     { id_zona: "G262/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 700, max_price: 800 },
 
     // ===== PAVONE CANAVESE (G392) =====
-    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 600, max_price: 700 },
-    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 900, max_price: 1000 },
-    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1000, max_price: 1100 },
+    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 650, max_price: 750 },
+    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 950, max_price: 1050 },
+    { id_zona: "G392/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1100, max_price: 1200 },
     { id_zona: "G392/R1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 400, max_price: 500 },
     { id_zona: "G392/R1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 600, max_price: 700 },
     { id_zona: "G392/R1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 700, max_price: 800 },

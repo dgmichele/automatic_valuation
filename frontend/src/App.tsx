@@ -1,43 +1,44 @@
 /**
  * App.tsx — Root dell'applicazione.
  *
- * Responsabilità (Fase 1):
+ * Responsabilità (Fase 2):
  * - Legge lat, lon, address dai query params all'avvio
- * - Se mancanti o non numerici → mostra FallbackPage (index route)
- * - Se presenti → salva nello store e redirige a /form/step-1
- *   (la geo lookup effettiva viene implementata in Fase 2)
+ * - Se mancanti/non numerici → non abilita il lookup → FallbackPage (route "/")
+ * - Se presenti → useGeoLookup chiama GET /api/geo/lookup:
+ *     200 OK        → salva zona nello store + redirect /form/step-1
+ *     404 OUTSIDE_AREA → redirect a "/" con state { outsideArea: true }
+ *     errore generico → toast + redirect a "/"
+ * - Durante il lookup: mostra un overlay skeleton a schermo intero
  */
-import { useEffect } from 'react';
-import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
+import { Outlet, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useValuationStore } from './store/useValuationStore';
+import { useGeoLookup } from './hooks/useGeoLookup';
 
 const App = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { setGeo } = useValuationStore();
 
-  useEffect(() => {
-    const rawLat = searchParams.get('lat');
-    const rawLon = searchParams.get('lon');
-    const address = searchParams.get('address');
+  // Estrae lat, lon, address dai query params
+  const rawLat = searchParams.get('lat');
+  const rawLon = searchParams.get('lon');
+  const address = searchParams.get('address');
 
-    const lat = rawLat ? parseFloat(rawLat) : NaN;
-    const lon = rawLon ? parseFloat(rawLon) : NaN;
+  const lat = rawLat ? parseFloat(rawLat) : null;
+  const lon = rawLon ? parseFloat(rawLon) : null;
 
-    // Query params assenti o non numerici → FallbackPage (già sulla route /)
-    if (isNaN(lat) || isNaN(lon) || !address) {
-      return;
-    }
+  // Lookup abilitato solo se tutti i parametri sono presenti e validi
+  const hasValidParams =
+    lat !== null &&
+    lon !== null &&
+    !isNaN(lat) &&
+    !isNaN(lon) &&
+    Boolean(address);
 
-    // Params validi: salva geo nello store (zona verrà popolata in Fase 2 via useGeoLookup)
-    setGeo({ lat, lon, address, zona: null });
-
-    // Redirige allo step 1 del form — la guard useFormStepGuard (Fase 3)
-    // gestirà i redirect ai passi precedenti se necessario
-    navigate('/form/step-1', { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Eseguito solo al mount — i query params non cambiano dopo l'ingresso
+  // Hook che gestisce internamente redirect, toast ed errori
+  const { isLoading } = useGeoLookup({
+    lat: hasValidParams ? lat : null,
+    lon: hasValidParams ? lon : null,
+    address: hasValidParams ? address : null,
+  });
 
   return (
     <>
@@ -60,8 +61,35 @@ const App = () => {
         }}
       />
 
-      {/* Outlet renderizza la pagina corrispondente alla route corrente */}
-      <Outlet />
+      {/*
+       * Overlay di caricamento durante il geo-lookup iniziale.
+       * Copre l'intera viewport con z-50 per evitare flash di FallbackPage
+       * nei millisecondi prima che useGeoLookup esegua il redirect.
+       */}
+      {isLoading ? (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-field"
+          role="status"
+          aria-label="Ricerca zona in corso"
+        >
+          {/* Skeleton animato — placeholder per il form step */}
+          <div className="w-full max-w-md px-6 space-y-4 animate-pulse">
+            <div className="h-6 rounded-lg bg-brand-border w-3/4 mx-auto" />
+            <div className="h-4 rounded-lg bg-brand-border w-1/2 mx-auto" />
+            <div className="mt-8 space-y-3">
+              <div className="h-12 rounded-xl bg-brand-border" />
+              <div className="h-12 rounded-xl bg-brand-border w-5/6" />
+              <div className="h-12 rounded-xl bg-brand-border w-4/6" />
+            </div>
+          </div>
+          <p className="mt-6 font-sans text-sm text-brand-placeholder">
+            Ricerca zona in corso…
+          </p>
+        </div>
+      ) : (
+        /* Outlet renderizza la pagina corrispondente alla route corrente */
+        <Outlet />
+      )}
     </>
   );
 };

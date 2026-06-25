@@ -1,13 +1,3 @@
-/**
- * useNominatim.ts — Hook per il fetch di suggerimenti indirizzo via Nominatim.
- *
- * Responsabilità:
- * - Gestisce lo stato locale dell'input (query)
- * - Esegue la ricerca su Nominatim con debounce di 400ms
- * - Filtra i risultati per viewbox (Canavese/Eporediese) da env
- * - Espone la lista di suggerimenti e il suggestion selezionato
- * - Il suggestion selezionato deve avere house_number per essere "valido"
- */
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 /** Struttura restituita da Nominatim per ogni suggerimento */
@@ -19,6 +9,8 @@ export interface NominatimSuggestion {
   address: {
     house_number?: string;
     road?: string;
+    pedestrian?: string;
+    square?: string;
     city?: string;
     town?: string;
     village?: string;
@@ -28,6 +20,9 @@ export interface NominatimSuggestion {
     country?: string;
     [key: string]: string | undefined;
   };
+  // Campi per la visualizzazione Google-style
+  primaryText?: string;
+  secondaryText?: string;
 }
 
 /** Dati estratti dal suggestion selezionato, pronti per il lookup */
@@ -36,30 +31,97 @@ export interface SelectedAddress {
   lon: number;
   displayName: string;
   hasHouseNumber: boolean;
+  road?: string;
 }
 
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search';
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3;
 
+/**
+ * Pulisce la query di ricerca rimuovendo i numeri civici isolati.
+ * Mantiene i numeri che fanno parte del nome della via (es: "Via 25 Aprile").
+ */
+const cleanQueryForSearch = (q: string): string => {
+  // Pattern comuni in cui i numeri fanno parte del nome della via
+  const streetNamePattern = /\b\d+\b\s*(?:gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|martiri|giornate|cantoni|alpini|bersaglieri|fanti|pontili|mura)/i;
+
+  return q.replace(/\b\d+\s*([a-zA-Z])?\b/g, (match, _letter, offset, fullString) => {
+    const surroundingText = fullString.substring(offset, offset + 30);
+    if (streetNamePattern.test(surroundingText)) {
+      return match; // Mantiene il numero
+    }
+    return ''; // Rimuove il numero (civico)
+  }).replace(/\s+/g, ' ').trim();
+};
+
+/**
+ * Estrae il numero civico dalla query originale digitata dall'utente.
+ * Esclude i numeri che sono già parte del nome della strada selezionata.
+ */
+const extractHouseNumber = (originalQuery: string, selectedRoad: string): string | undefined => {
+  if (!selectedRoad) return undefined;
+
+  const numberMatches = originalQuery.match(/\b\d+\s*[-/]?\s*[a-zA-Z]?\b/g);
+  if (!numberMatches) return undefined;
+
+  const roadLower = selectedRoad.toLowerCase();
+  for (const match of numberMatches) {
+    const cleanMatch = match.trim();
+    const numRegex = new RegExp(`\\b${cleanMatch.replace(/[-\/]/g, '')}\\b`, 'i');
+    const roadClean = roadLower.replace(/[-\/]/g, ' ');
+    if (!numRegex.test(roadClean)) {
+      return cleanMatch.toUpperCase().replace(/\s+/g, '');
+    }
+  }
+
+  return undefined;
+};
+
+/** Costruisce il testo principale (via) per il dropdown */
+const buildPrimaryText = (s: NominatimSuggestion): string => {
+  const { address } = s;
+  return address.road ?? address.pedestrian ?? address.square ?? s.display_name.split(',')[0];
+};
+
+/** Costruisce il testo secondario (comune, provincia e cap) per il dropdown */
+const buildSecondaryText = (s: NominatimSuggestion): string => {
+  const { address } = s;
+  const parts: string[] = [];
+
+  const city = address.city ?? address.town ?? address.village;
+  if (city) {
+    let county = address.county;
+    if (county) {
+      if (county.toLowerCase().includes('torino')) {
+        county = 'TO';
+      } else {
+        county = county.replace(/città metropolitana di/i, '').trim();
+      }
+      parts.push(`${city} (${county})`);
+    } else {
+      parts.push(city);
+    }
+  }
+
+  if (address.postcode) {
+    parts.push(address.postcode);
+  }
+
+  return parts.length > 0 ? parts.join(' - ') : '';
+};
+
 export const useNominatim = () => {
-  // Testo dell'input
   const [query, setQuery] = useState('');
-  // Lista suggerimenti Nominatim
   const [suggestions, setSuggestions] = useState<NominatimSuggestion[]>([]);
-  // Suggestion selezionato dall'utente
   const [selected, setSelected] = useState<SelectedAddress | null>(null);
-  // Flag di caricamento
   const [isLoading, setIsLoading] = useState(false);
-  // Testo di avviso per house_number mancante
   const [missingHouseNumber, setMissingHouseNumber] = useState(false);
 
-  // Ref per il timer del debounce
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Ref per l'AbortController — cancella fetch precedenti
   const abortController = useRef<AbortController | null>(null);
+  const isSelectingRef = useRef(false);
 
-  // Viewbox dal file .env (es. "7.7,45.55,8.0,45.35")
   const viewbox = import.meta.env.VITE_NOMINATIM_VIEWBOX ?? '7.7,45.55,8.0,45.35';
 
   /** Costruisce una stringa indirizzo compatta dal suggestion Nominatim */
@@ -67,8 +129,9 @@ export const useNominatim = () => {
     const { address } = s;
     const parts: string[] = [];
 
-    if (address.road) {
-      parts.push(address.house_number ? `${address.road} ${address.house_number}` : address.road);
+    const road = address.road ?? address.pedestrian ?? address.square;
+    if (road) {
+      parts.push(address.house_number ? `${road} ${address.house_number}` : road);
     }
 
     const city = address.city ?? address.town ?? address.village ?? address.county;
@@ -80,7 +143,6 @@ export const useNominatim = () => {
   /** Esegue la chiamata a Nominatim */
   const fetchSuggestions = useCallback(
     async (searchQuery: string) => {
-      // Annulla il fetch precedente se ancora in corso
       if (abortController.current) {
         abortController.current.abort();
       }
@@ -89,30 +151,64 @@ export const useNominatim = () => {
       setIsLoading(true);
 
       try {
+        const cleanedQuery = cleanQueryForSearch(searchQuery);
+
+        if (cleanedQuery.length < MIN_QUERY_LENGTH) {
+          setSuggestions([]);
+          setIsLoading(false);
+          return;
+        }
+
         const params = new URLSearchParams({
-          q: searchQuery,
+          q: cleanedQuery,
           format: 'json',
           addressdetails: '1',
           limit: '5',
           countrycodes: 'it',
           viewbox,
-          bounded: '0', // Non limitare rigidamente alla viewbox, ma preferirla
+          bounded: '1', // Forza la ricerca a rimanere rigorosamente nella viewbox del Canavese
         });
 
         const response = await fetch(`${NOMINATIM_BASE}?${params.toString()}`, {
           signal: abortController.current.signal,
           headers: {
-            // Header richiesto da Nominatim per identificare l'applicazione
             'Accept-Language': 'it',
           },
         });
 
         if (!response.ok) throw new Error('Nominatim non disponibile');
 
-        const data: NominatimSuggestion[] = await response.json();
-        setSuggestions(data);
+                const data: NominatimSuggestion[] = await response.json();
+        
+        // Formattazione testi e de-duplicazione
+        const formattedData = data.map(s => {
+          const road = s.address.road ?? s.address.pedestrian ?? s.address.square ?? '';
+          let primaryText = buildPrimaryText(s);
+          const secondaryText = buildSecondaryText(s);
+
+          // Se l'utente ha inserito un civico nella query originale, lo mostriamo nella tendina
+          const extractedCivic = extractHouseNumber(searchQuery, road);
+          if (extractedCivic) {
+            primaryText = `${primaryText} ${extractedCivic}`;
+          }
+
+          return {
+            ...s,
+            primaryText,
+            secondaryText,
+          };
+        });
+
+        const seen = new Set<string>();
+        const uniqueData = formattedData.filter(s => {
+          const key = `${s.primaryText?.toLowerCase()}|${s.secondaryText?.toLowerCase()}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        setSuggestions(uniqueData);
       } catch (err: unknown) {
-        // Ignora gli errori di abort (cancellazione intenzionale)
         if ((err as Error)?.name !== 'AbortError') {
           setSuggestions([]);
         }
@@ -123,9 +219,14 @@ export const useNominatim = () => {
     [viewbox],
   );
 
-  // Debounce: esegue fetchSuggestions 400ms dopo l'ultima modifica alla query
+  // Debounce per le modifiche della query
   useEffect(() => {
-    // Reset del suggestion selezionato quando l'utente modifica la query
+    // Se la query è cambiata a seguito di una selezione, evitiamo il reset e la nuova chiamata API
+    if (isSelectingRef.current) {
+      isSelectingRef.current = false;
+      return;
+    }
+
     setSelected(null);
     setMissingHouseNumber(false);
 
@@ -146,31 +247,46 @@ export const useNominatim = () => {
 
   /**
    * Gestisce la selezione di un suggestion dalla lista.
-   * Controlla la presenza di house_number e aggiorna lo stato di conseguenza.
+   * Cerca di estrarre il civico dall'input utente se assente in Nominatim.
    */
   const handleSelect = useCallback((suggestion: NominatimSuggestion) => {
-    const hasHouseNumber = Boolean(suggestion.address.house_number);
-    const displayName = buildDisplayName(suggestion);
+    isSelectingRef.current = true;
 
-    // Popola il campo input con il testo del suggestion selezionato
+    const road = suggestion.address.road ?? suggestion.address.pedestrian ?? suggestion.address.square ?? '';
+    let houseNumber = suggestion.address.house_number;
+    if (!houseNumber) {
+      // Estraiamo il civico dal testo originario digitato
+      houseNumber = extractHouseNumber(query, road);
+    }
+
+    const updatedSuggestion = {
+      ...suggestion,
+      address: {
+        ...suggestion.address,
+        house_number: houseNumber,
+      }
+    };
+
+    const hasHouseNumber = Boolean(houseNumber);
+    const displayName = buildDisplayName(updatedSuggestion);
+
     setQuery(displayName);
-    // Chiude la lista dropdown
     setSuggestions([]);
 
+    setSelected({
+      lat: parseFloat(suggestion.lat),
+      lon: parseFloat(suggestion.lon),
+      displayName,
+      hasHouseNumber,
+      road,
+    });
+
     if (!hasHouseNumber) {
-      // Segnala civico mancante — pulsante "Valuta" resterà disabilitato
       setMissingHouseNumber(true);
-      setSelected(null);
     } else {
       setMissingHouseNumber(false);
-      setSelected({
-        lat: parseFloat(suggestion.lat),
-        lon: parseFloat(suggestion.lon),
-        displayName,
-        hasHouseNumber: true,
-      });
     }
-  }, []);
+  }, [query]);
 
   /** Resetta tutto lo stato del componente */
   const reset = useCallback(() => {

@@ -3,12 +3,12 @@
  *
  * Funzionalità:
  * - Input con suggerimenti Nominatim (debounce 400ms, via useNominatim)
- * - Solo suggerimenti con house_number selezionabili per il submit
- * - Avviso inline se selezionato indirizzo senza civico
- * - Pulsante "Valuta" disabilitato finché non c'è un indirizzo valido selezionato
- * - Emette onValidSelect con { lat, lon, displayName } quando la selezione è valida
+ * - Visualizzazione Google-Style (Titolo della via in risalto, Sottotitolo con comune/provincia/cap)
+ * - Selezionando un indirizzo sprovvisto di civico, mostra un campo aggiuntivo per inserirlo a mano
+ * - Pulsante "Valuta" attivo solo quando l'indirizzo ha un civico valido (rilevato o digitato manualmente)
+ * - Emette onValidSelect con { lat, lon, displayName } completo di civico
  */
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { MdSearch, MdLocationOn, MdClose } from 'react-icons/md';
 import clsx from 'clsx';
 import { useNominatim, type SelectedAddress } from '../../hooks/useNominatim';
@@ -20,6 +20,17 @@ interface AddressAutocompleteProps {
   isSubmitting?: boolean;
 }
 
+const insertHouseNumberIntoDisplayName = (
+  displayName: string,
+  road: string | undefined,
+  civic: string,
+): string => {
+  if (road && displayName.startsWith(road)) {
+    return displayName.replace(road, `${road} ${civic}`);
+  }
+  return `${displayName} ${civic}`;
+};
+
 const AddressAutocomplete = ({
   onValidSelect,
   isSubmitting = false,
@@ -30,11 +41,11 @@ const AddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
-    missingHouseNumber,
     handleSelect,
-    reset,
+    reset: resetNominatim,
   } = useNominatim();
 
+  const [manualHouseNumber, setManualHouseNumber] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -48,21 +59,49 @@ const AddressAutocomplete = ({
         listRef.current &&
         !listRef.current.contains(target)
       ) {
-        // Chiudi i suggerimenti senza resettare il query
-        // (l'utente potrebbe aver cliccato altrove dopo aver digitato)
+        // Chiudi i suggerimenti senza resettare la query
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  /** Pulsante "Valuta": attivo solo se c'è un selected valido e non sta già caricando */
-  const isValutaDisabled = !selected || isSubmitting;
+  // Resetta il civico manuale quando cambia la selezione
+  useEffect(() => {
+    if (!selected || selected.hasHouseNumber) {
+      setManualHouseNumber('');
+    }
+  }, [selected]);
+
+  /** Pulsante "Valuta" abilitato solo se abbiamo un indirizzo con civico (estratto o inserito a mano) */
+  const isValutaDisabled =
+    !selected ||
+    isSubmitting ||
+    (!selected.hasHouseNumber && !manualHouseNumber.trim());
 
   const handleValutaClick = () => {
-    if (selected && selected.hasHouseNumber) {
-      onValidSelect(selected);
+    if (selected) {
+      if (selected.hasHouseNumber) {
+        onValidSelect(selected);
+      } else if (manualHouseNumber.trim()) {
+        const displayNameWithCivic = insertHouseNumberIntoDisplayName(
+          selected.displayName,
+          selected.road,
+          manualHouseNumber.trim(),
+        );
+
+        onValidSelect({
+          ...selected,
+          displayName: displayNameWithCivic,
+          hasHouseNumber: true,
+        });
+      }
     }
+  };
+
+  const handleReset = () => {
+    resetNominatim();
+    setManualHouseNumber('');
   };
 
   return (
@@ -82,7 +121,7 @@ const AddressAutocomplete = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Es. Via Palestro 3, Ivrea"
+            placeholder="Es. Via Palestro, Ivrea"
             autoComplete="off"
             disabled={isSubmitting}
             aria-label="Inserisci indirizzo"
@@ -95,9 +134,7 @@ const AddressAutocomplete = ({
               'transition duration-300',
               'focus:border-brand-border-focus focus:outline-none focus:ring-2 focus:ring-brand-border-focus/30',
               'disabled:cursor-not-allowed disabled:opacity-60',
-              missingHouseNumber
-                ? 'border-amber-400'
-                : 'border-brand-border',
+              'border-brand-border',
             )}
           />
 
@@ -105,7 +142,7 @@ const AddressAutocomplete = ({
           {query.length > 0 && !isSubmitting && (
             <button
               type="button"
-              onClick={reset}
+              onClick={handleReset}
               aria-label="Cancella indirizzo"
               className="absolute right-3 p-1 text-brand-placeholder transition duration-300 hover:text-brand-dark"
             >
@@ -123,40 +160,32 @@ const AddressAutocomplete = ({
             aria-label="Suggerimenti indirizzo"
             className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-brand-border bg-brand-field shadow-lg"
           >
-            {suggestions.map((suggestion) => {
-              const hasHouseNumber = Boolean(suggestion.address.house_number);
-              return (
-                <li
-                  key={suggestion.place_id}
-                  role="option"
-                  aria-selected={false}
-                  onClick={() => handleSelect(suggestion)}
-                  className={clsx(
-                    'flex cursor-pointer items-start gap-3 px-4 py-3',
-                    'transition duration-200 hover:bg-brand-border/30',
-                    'border-b border-brand-border last:border-0',
-                  )}
-                >
-                  <MdLocationOn
-                    className={clsx(
-                      'mt-0.5 h-4 w-4 shrink-0',
-                      hasHouseNumber ? 'text-brand-primary' : 'text-brand-placeholder',
-                    )}
-                    aria-hidden="true"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-sans text-sm text-brand-dark leading-snug truncate">
-                      {suggestion.display_name}
-                    </p>
-                    {!hasHouseNumber && (
-                      <p className="font-sans text-xs text-brand-placeholder mt-0.5">
-                        Aggiungi il numero civico
-                      </p>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
+            {suggestions.map((suggestion) => (
+              <li
+                key={suggestion.place_id}
+                role="option"
+                aria-selected={false}
+                onClick={() => handleSelect(suggestion)}
+                className={clsx(
+                  'flex cursor-pointer items-start gap-3 px-4 py-3',
+                  'transition duration-200 hover:bg-brand-border/30',
+                  'border-b border-brand-border last:border-0',
+                )}
+              >
+                <MdLocationOn
+                  className="mt-0.5 h-4 w-4 shrink-0 text-brand-primary"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-sans text-sm font-semibold text-brand-dark leading-snug truncate">
+                    {suggestion.primaryText}
+                  </p>
+                  <p className="font-sans text-xs text-brand-placeholder mt-0.5 leading-normal truncate">
+                    {suggestion.secondaryText}
+                  </p>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
 
@@ -168,22 +197,43 @@ const AddressAutocomplete = ({
         )}
       </div>
 
-      {/* ── Avviso civico mancante ── */}
-      {missingHouseNumber && (
-        <p
-          role="alert"
-          className="mt-2 font-sans text-xs text-amber-600"
-        >
-          Devi selezionare un indirizzo comprensivo di numero civico.
-        </p>
+      {/* ── Campo civico aggiuntivo (mostrato solo se l'indirizzo selezionato non ha il civico) ── */}
+      {selected && !selected.hasHouseNumber && (
+        <div className="mt-4 transition duration-300 ease-out animate-fadeIn">
+          <label
+            htmlFor="manual-house-number-input"
+            className="block font-sans text-xs font-semibold text-brand-paragraph mb-1.5"
+          >
+            Numero civico (obbligatorio)
+          </label>
+          <input
+            id="manual-house-number-input"
+            type="text"
+            value={manualHouseNumber}
+            onChange={(e) => setManualHouseNumber(e.target.value)}
+            placeholder="Es. 20 o 20/A"
+            disabled={isSubmitting}
+            className={clsx(
+              'w-full rounded-xl border bg-brand-field py-3 px-4',
+              'font-sans text-sm text-brand-dark placeholder:text-brand-placeholder',
+              'transition duration-300',
+              'focus:border-brand-border-focus focus:outline-none focus:ring-2 focus:ring-brand-border-focus/30',
+              'disabled:cursor-not-allowed disabled:opacity-60',
+              'border-brand-border',
+            )}
+          />
+        </div>
       )}
 
       {/* ── Avviso ricerca attiva senza selezione ── */}
-      {query.length >= 3 && !isLoading && suggestions.length === 0 && !selected && !missingHouseNumber && (
-        <p className="mt-2 font-sans text-xs text-brand-placeholder">
-          Nessun risultato trovato. Prova a essere più specifico.
-        </p>
-      )}
+      {query.length >= 3 &&
+        !isLoading &&
+        suggestions.length === 0 &&
+        !selected && (
+          <p className="mt-2 font-sans text-xs text-brand-placeholder">
+            Nessun risultato trovato. Prova a essere più specifico.
+          </p>
+        )}
 
       {/* ── Pulsante "Valuta" ── */}
       <button
@@ -193,7 +243,7 @@ const AddressAutocomplete = ({
         disabled={isValutaDisabled}
         className={clsx(
           'mt-4 w-full rounded-xl py-3.5 font-sans text-sm font-semibold',
-          'transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
+          'transition duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
           isValutaDisabled
             ? 'cursor-not-allowed bg-brand-border text-brand-placeholder'
             : 'bg-brand-primary text-brand-field hover:bg-brand-dark',

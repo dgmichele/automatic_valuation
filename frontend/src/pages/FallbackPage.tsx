@@ -98,18 +98,7 @@ const FallbackPage = () => {
         <main className="flex flex-1 flex-col items-center justify-center px-4">
           {/* ErrorScreen gestisce il testo e il pulsante "Riprova" */}
           <div className="w-full max-w-lg">
-            <ErrorScreen variant="outside-area" />
-            {/* Override pulsante per tornare al form locale invece che navigare */}
-            <div className="mt-2 text-center">
-              <button
-                id="fallback-retry-btn"
-                type="button"
-                onClick={handleRetryFromError}
-                className="font-sans text-sm font-semibold text-brand-primary transition duration-300 hover:text-brand-dark underline underline-offset-4"
-              >
-                Inserisci un altro indirizzo
-              </button>
-            </div>
+            <ErrorScreen variant="outside-area" onRetry={handleRetryFromError} />
           </div>
         </main>
       </div>

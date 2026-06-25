@@ -14,6 +14,8 @@ import { MdLocationOff, MdErrorOutline } from 'react-icons/md';
 interface ErrorScreenProps {
   /** Tipo di errore: determina icona e testo mostrati */
   variant: 'outside-area' | 'generic';
+  /** Callback opzionale per gestire il pulsante di riprova in locale */
+  onRetry?: () => void;
 }
 
 const ERROR_CONTENT = {
@@ -31,13 +33,17 @@ const ERROR_CONTENT = {
   },
 } as const;
 
-const ErrorScreen = ({ variant }: ErrorScreenProps) => {
+const ErrorScreen = ({ variant, onRetry }: ErrorScreenProps) => {
   const navigate = useNavigate();
   const { Icon, title, description } = ERROR_CONTENT[variant];
 
   const handleRetry = () => {
-    // Torna alla FallbackPage pulita (senza state di errore)
-    navigate('/', { replace: true });
+    if (onRetry) {
+      onRetry();
+    } else {
+      // Torna alla FallbackPage pulita (senza state di errore)
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -62,7 +68,7 @@ const ErrorScreen = ({ variant }: ErrorScreenProps) => {
         id="error-screen-retry-btn"
         type="button"
         onClick={handleRetry}
-        className="rounded-lg bg-brand-primary px-6 py-3 font-sans text-sm font-semibold text-brand-field transition duration-300 hover:bg-brand-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+        className="rounded-lg bg-brand-primary px-6 py-3 font-sans text-sm font-semibold text-brand-field transition duration-300 hover:bg-brand-dark cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
       >
         Riprova con un altro indirizzo
       </button>

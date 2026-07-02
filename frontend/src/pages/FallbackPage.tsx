@@ -85,54 +85,44 @@ const FallbackPage = () => {
   // ── Render: schermata fuori area ──────────────────────────────────────────
   if (isOutsideArea) {
     return (
-      <div className="flex min-h-screen flex-col">
-
-        <main className="flex flex-1 flex-col items-center justify-center px-4">
-          {/* ErrorScreen gestisce il testo e il pulsante "Riprova" */}
-          <div className="w-full max-w-lg">
-            <ErrorScreen variant="outside-area" onRetry={handleRetryFromError} />
-          </div>
-        </main>
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        {/* ErrorScreen gestisce il testo e il pulsante "Riprova" */}
+        <div className="w-full max-w-lg">
+          <ErrorScreen variant="outside-area" onRetry={handleRetryFromError} />
+        </div>
       </div>
     );
   }
 
   // ── Render: form inserimento indirizzo ────────────────────────────────────
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Overlay semitrasparente per leggibilità */}
-      <div className="flex min-h-screen flex-col backdrop-blur-sm">
+    <div
+      className="flex-1 flex flex-col items-center justify-center px-4 backdrop-blur-sm"
+      id="fallback-main"
+    >
+      <div className="w-full max-w-lg rounded-2xl bg-brand-field/95 shadow-2xl backdrop-blur-md px-6 py-10 mb-30 mt-20 sm:px-10">
+          {/* Titolo */}
+          <h1 className="font-serif text-2xl font-black text-brand-dark text-center mb-2">
+            Inizia la tua valutazione
+          </h1>
 
-        {/* Contenuto centrale */}
-        <main
-          className="flex flex-1 flex-col items-center justify-center px-4 py-12"
-          id="fallback-main"
-        >
-          <div className="w-full max-w-lg rounded-2xl bg-brand-field/95 shadow-2xl backdrop-blur-md px-6 py-10 sm:px-10">
-            {/* Titolo */}
-            <h1 className="font-serif text-2xl font-black text-brand-dark text-center mb-2">
-              Inizia la tua valutazione
-            </h1>
+          {/* Sottotitolo */}
+          <p className="font-sans text-sm text-brand-paragraph text-center mb-8">
+            Per continuare, inserisci un indirizzo
+          </p>
 
-            {/* Sottotitolo */}
-            <p className="font-sans text-sm text-brand-paragraph text-center mb-8">
-              Per continuare, inserisci un indirizzo
-            </p>
+          {/* AddressAutocomplete — cuore della FallbackPage */}
+          <AddressAutocomplete
+            onValidSelect={handleValidSelect}
+            isSubmitting={isSubmitting}
+          />
 
-            {/* AddressAutocomplete — cuore della FallbackPage */}
-            <AddressAutocomplete
-              onValidSelect={handleValidSelect}
-              isSubmitting={isSubmitting}
-            />
-
-            {/* Disclaimer zona */}
-            <p className="mt-6 text-center font-sans text-xs text-brand-placeholder">
-              Il servizio è disponibile per immobili nel Canavese (Ivrea e dintorni).
-            </p>
-          </div>
-        </main>
+          {/* Disclaimer zona */}
+          <p className="mt-6 text-center font-sans text-xs text-brand-placeholder">
+            Il servizio è disponibile per immobili nel Canavese (Ivrea e dintorni).
+          </p>
+        </div>
       </div>
-    </div>
   );
 };
 

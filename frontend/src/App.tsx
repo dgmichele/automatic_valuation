@@ -91,8 +91,11 @@ const App = () => {
           </p>
         </div>
       ) : (
-        /* Outlet renderizza la pagina corrispondente alla route corrente */
-        <Outlet />
+        /* Blocco <main /> unico con flex-1 per riempire lo spazio verticale */
+        <main className="flex-1 flex flex-col">
+          {/* Outlet renderizza la pagina corrispondente alla route corrente */}
+          <Outlet />
+        </main>
       )}
 
       {/* Footer globale — presente su tutte le route */}

@@ -9,7 +9,7 @@ const FormStepPage = () => {
   const { step } = useParams<{ step: string }>();
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex-1 flex items-center justify-center">
       <p className="text-brand-paragraph font-sans text-sm">
         FormStepPage — stub Fase 1 — step: {step}
       </p>

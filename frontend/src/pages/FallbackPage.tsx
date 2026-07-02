@@ -86,14 +86,6 @@ const FallbackPage = () => {
   if (isOutsideArea) {
     return (
       <div className="flex min-h-screen flex-col">
-        {/* Header minimale — solo logo testuale */}
-        <header className="border-b border-brand-border bg-brand-field shadow-sm">
-          <div className="mx-auto max-w-xl px-4 py-4 text-center">
-            <p className="font-serif text-base font-black text-brand-primary tracking-wide">
-              Bich Immobiliare
-            </p>
-          </div>
-        </header>
 
         <main className="flex flex-1 flex-col items-center justify-center px-4">
           {/* ErrorScreen gestisce il testo e il pulsante "Riprova" */}
@@ -110,14 +102,6 @@ const FallbackPage = () => {
     <div className="flex min-h-screen flex-col">
       {/* Overlay semitrasparente per leggibilità */}
       <div className="flex min-h-screen flex-col backdrop-blur-sm">
-        {/* Header minimale */}
-        <header className="border-b border-white/10 bg-brand-field/90 shadow-sm">
-          <div className="mx-auto max-w-xl px-4 py-4 text-center">
-            <p className="font-serif text-base font-black text-brand-primary tracking-wide">
-              Bich Immobiliare
-            </p>
-          </div>
-        </header>
 
         {/* Contenuto centrale */}
         <main

@@ -13,6 +13,7 @@
 import { Outlet, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useGeoLookup } from './hooks/useGeoLookup';
+import Header from './components/layout/Header';
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,8 @@ const App = () => {
 
   return (
     <>
+      {/* Header globale — presente su tutte le route */}
+      <Header />
       {/* Toaster globale — stile coerente col branding */}
       <Toaster
         position="top-center"

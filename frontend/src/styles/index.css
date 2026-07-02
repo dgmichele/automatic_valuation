@@ -14,8 +14,8 @@
   --color-brand-popup-bg: #fdf5f7;
 
   /* Tipografia */
-  --font-family-sans: 'Inter', sans-serif;
-  --font-family-serif: 'Merriweather', serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Merriweather', serif;
 }
 
 /* ── Reset / base globale ── */
@@ -34,9 +34,14 @@ body,
 }
 
 body {
-  font-family: var(--font-family-sans);
+  font-family: var(--font-sans);
   color: var(--color-brand-dark);
   background-color: #f5f5f5;
+  background-image: url('/background.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

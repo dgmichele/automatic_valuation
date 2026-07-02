@@ -107,17 +107,9 @@ const FallbackPage = () => {
 
   // ── Render: form inserimento indirizzo ────────────────────────────────────
   return (
-    <div
-      className="flex min-h-screen flex-col"
-      style={{
-        backgroundImage: 'url(/background.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
+    <div className="flex min-h-screen flex-col">
       {/* Overlay semitrasparente per leggibilità */}
-      <div className="flex min-h-screen flex-col bg-brand-dark/40 backdrop-blur-sm">
+      <div className="flex min-h-screen flex-col backdrop-blur-sm">
         {/* Header minimale */}
         <header className="border-b border-white/10 bg-brand-field/90 shadow-sm">
           <div className="mx-auto max-w-xl px-4 py-4 text-center">

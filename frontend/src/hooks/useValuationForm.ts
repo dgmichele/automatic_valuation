@@ -1,5 +1,5 @@
 import { useReducer, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useValuationStore } from '../store/useValuationStore';
 
 // ── Tipi per lo Stato ─────────────────────────────────────────────────────────
@@ -78,13 +78,13 @@ const initialFormState: FormState = {
  */
 export const useValuationForm = () => {
   const navigate = useNavigate();
-  const { step } = useParams<{ step: string }>();
+  const { pathname } = useLocation();
   const storeSetCurrentStep = useValuationStore((state) => state.setCurrentStep);
 
-  // Determina lo step iniziale in base al parametro nell'URL attuale
+  // Determina lo step corrente dal pathname (le rotte sono path letterali, non parametriche)
   const getStepFromUrl = (): 1 | 2 | 3 => {
-    if (step === 'step-3') return 3;
-    if (step === 'step-2') return 2;
+    if (pathname.endsWith('step-3')) return 3;
+    if (pathname.endsWith('step-2')) return 2;
     return 1;
   };
 
@@ -93,12 +93,12 @@ export const useValuationForm = () => {
     currentStep: getStepFromUrl(),
   });
 
-  // Sincronizza lo stato locale e lo store globale con i cambiamenti di rotta (URL)
+  // Sincronizza lo stato locale e lo store globale ad ogni cambio di pathname
   useEffect(() => {
     const stepNum = getStepFromUrl();
     dispatch({ type: 'SET_STEP', payload: stepNum });
     storeSetCurrentStep(stepNum);
-  }, [step, storeSetCurrentStep]);
+  }, [pathname, storeSetCurrentStep]);
 
   // Gestione avanzamento step
   const goToNext = () => {

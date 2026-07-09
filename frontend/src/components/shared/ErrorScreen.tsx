@@ -47,7 +47,7 @@ const ErrorScreen = ({ variant, onRetry }: ErrorScreenProps) => {
   };
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12 text-center">
+    <div className="flex min-h-[60vh] flex-col items-center px-4 py-12 mt-8 mb-10 text-center">
       {/* Icona errore */}
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-brand-border">
         <Icon className="h-10 w-10 text-brand-primary" aria-hidden="true" />

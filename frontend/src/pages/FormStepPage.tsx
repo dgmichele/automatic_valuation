@@ -1,51 +1,56 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useValuationStore } from '../store/useValuationStore';
 import { ProgressBar } from '../components/layout/ProgressBar';
 import { AddressBadge } from '../components/layout/AddressBadge';
-
 import { EditAddressModal } from '../components/form/EditAddressModal';
+import { StickyFormNav } from '../components/form/StickyFormNav';
+import { useValuationForm } from '../hooks/useValuationForm';
 
 const FormStepPage = () => {
-  const { step } = useParams<{ step: string }>();
-  const setCurrentStep = useValuationStore((state) => state.setCurrentStep);
-
-  // Determina il numero dello step corrente in base al parametro dell'URL
-  const stepNumber = step === 'step-3' ? 3 : step === 'step-2' ? 2 : 1;
-
-  // Stato locale per il modal di modifica indirizzo
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Sincronizza lo step corrente nello store globale
-  useEffect(() => {
-    setCurrentStep(stepNumber as 1 | 2 | 3);
-  }, [stepNumber, setCurrentStep]);
+  const {
+    currentStep,
+    isAddressModalOpen,
+    isFirstStep,
+    isLastStep,
+    isCalculating,
+    goToNext,
+    goToPrev,
+    toggleAddressModal,
+  } = useValuationForm();
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start w-full max-w-4xl mx-auto px-4 py-8">
+    <div className="flex-1 flex flex-col items-center justify-start w-full max-w-4xl mx-auto px-4 pt-4 pb-24 md:py-8">
       {/* Barra di progresso in cima al form */}
       <ProgressBar />
 
       {/* Targhetta indirizzo con pulsante Modifica */}
-      <AddressBadge onEdit={() => setIsEditModalOpen(true)} />
+      <AddressBadge onEdit={() => toggleAddressModal(true)} />
 
       {/* Modal di modifica indirizzo */}
       <EditAddressModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        isOpen={isAddressModalOpen}
+        onClose={() => toggleAddressModal(false)}
       />
 
       {/* Contenitore di mockup temporaneo per i passi successivi della Fase 3 */}
-      <div className="w-full max-w-2xl bg-brand-field/80 backdrop-blur-md rounded-2xl p-8 border border-brand-border mt-0" style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}>
+      <div className="w-full max-w-2xl bg-brand-field/80 backdrop-blur-md rounded-2xl p-8 border border-brand-border mt-0 mb-20" style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}>
         <h2 className="text-xl font-bold text-brand-dark mb-4">
-          Step {stepNumber}: {stepNumber === 1 ? 'Tipologia Immobile' : stepNumber === 2 ? 'Caratteristiche' : 'Scopo Valutazione'}
+          Step {currentStep}: {currentStep === 1 ? 'Tipologia Immobile' : currentStep === 2 ? 'Caratteristiche' : 'Scopo Valutazione'}
         </h2>
         <p className="text-brand-paragraph font-sans text-sm">
-          Contenuto del form per lo step {stepNumber} in fase di sviluppo.
+          Contenuto del form per lo step {currentStep} in fase di sviluppo.
         </p>
       </div>
+
+      {/* Navigazione Sticky inferiore */}
+      <StickyFormNav
+        onNext={goToNext}
+        onBack={goToPrev}
+        showBack={!isFirstStep}
+        isLastStep={isLastStep}
+        isLoading={isCalculating}
+      />
     </div>
   );
 };
 
 export default FormStepPage;
+

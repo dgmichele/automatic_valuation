@@ -87,7 +87,7 @@ export const ProgressBar: React.FC = () => {
               </div>
 
               {/* Etichetta testuale */}
-              <div className="absolute mt-12 flex flex-col items-center text-center w-32">
+              <div className="absolute mt-12 flex flex-col items-center text-center w-24 sm:w-32">
                 <span
                   className={`
                     text-xs sm:text-sm font-semibold tracking-wide transition-colors duration-300 mt-1

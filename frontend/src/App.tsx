@@ -14,7 +14,6 @@ import { Outlet, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useGeoLookup } from './hooks/useGeoLookup';
 import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -97,11 +96,9 @@ const App = () => {
           <Outlet />
         </main>
       )}
-
-      {/* Footer globale — presente su tutte le route */}
-      <Footer />
     </>
   );
 };
 
 export default App;
+

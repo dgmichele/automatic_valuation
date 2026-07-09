@@ -4,6 +4,8 @@ import { useValuationStore } from '../store/useValuationStore';
 import { ProgressBar } from '../components/layout/ProgressBar';
 import { AddressBadge } from '../components/layout/AddressBadge';
 
+import { EditAddressModal } from '../components/form/EditAddressModal';
+
 const FormStepPage = () => {
   const { step } = useParams<{ step: string }>();
   const setCurrentStep = useValuationStore((state) => state.setCurrentStep);
@@ -12,7 +14,6 @@ const FormStepPage = () => {
   const stepNumber = step === 'step-3' ? 3 : step === 'step-2' ? 2 : 1;
 
   // Stato locale per il modal di modifica indirizzo
-  // (il futuro EditAddressModal sarà collegato qui)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Sincronizza lo step corrente nello store globale
@@ -28,11 +29,11 @@ const FormStepPage = () => {
       {/* Targhetta indirizzo con pulsante Modifica */}
       <AddressBadge onEdit={() => setIsEditModalOpen(true)} />
 
-      {/* TODO: EditAddressModal — da implementare nella prossima fase */}
-      {/* isEditModalOpen verrà passato al modal quando sarà creato */}
-      {isEditModalOpen && (
-        <div className="hidden" aria-hidden="true" />
-      )}
+      {/* Modal di modifica indirizzo */}
+      <EditAddressModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
 
       {/* Contenitore di mockup temporaneo per i passi successivi della Fase 3 */}
       <div className="w-full max-w-2xl bg-brand-field/80 backdrop-blur-md rounded-2xl p-8 border border-brand-border mt-0" style={{ boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)' }}>

@@ -2,16 +2,15 @@
  * AddressAutocomplete.tsx — Componente autocomplete indirizzo via Nominatim.
  *
  * Funzionalità:
- * - Input con suggerimenti Nominatim (debounce 400ms, via useNominatim)
  * - Visualizzazione Google-Style (Titolo della via in risalto, Sottotitolo con comune/provincia/cap)
  * - Selezionando un indirizzo sprovvisto di civico, mostra un campo aggiuntivo per inserirlo a mano
  * - Pulsante "Valuta" attivo solo quando l'indirizzo ha un civico valido (rilevato o digitato manualmente)
- * - Emette onValidSelect con { lat, lon, displayName } completo di civico
+ * - Tutta la logica è delegata all'hook useAddressAutocomplete.
  */
-import { useRef, useEffect, useState } from 'react';
 import { MdSearch, MdLocationOn, MdClose } from 'react-icons/md';
 import clsx from 'clsx';
-import { useNominatim, type SelectedAddress } from '../../hooks/useNominatim';
+import { type SelectedAddress } from '../../hooks/useNominatim';
+import { useAddressAutocomplete } from '../../hooks/useAddressAutocomplete';
 
 interface AddressAutocompleteProps {
   /** Callback invocato quando l'utente ha selezionato un indirizzo valido e clicca "Valuta" */
@@ -19,17 +18,6 @@ interface AddressAutocompleteProps {
   /** Stato di caricamento esterno (geo lookup in corso dopo click "Valuta") */
   isSubmitting?: boolean;
 }
-
-const insertHouseNumberIntoDisplayName = (
-  displayName: string,
-  road: string | undefined,
-  civic: string,
-): string => {
-  if (road && displayName.startsWith(road)) {
-    return displayName.replace(road, `${road} ${civic}`);
-  }
-  return `${displayName} ${civic}`;
-};
 
 const AddressAutocomplete = ({
   onValidSelect,
@@ -42,67 +30,14 @@ const AddressAutocomplete = ({
     selected,
     isLoading,
     handleSelect,
-    reset: resetNominatim,
-  } = useNominatim();
-
-  const [manualHouseNumber, setManualHouseNumber] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-
-  // Chiudi la dropdown al click fuori dal componente
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (
-        inputRef.current &&
-        !inputRef.current.contains(target) &&
-        listRef.current &&
-        !listRef.current.contains(target)
-      ) {
-        // Chiudi i suggerimenti senza resettare la query
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Resetta il civico manuale quando cambia la selezione
-  useEffect(() => {
-    if (!selected || selected.hasHouseNumber) {
-      setManualHouseNumber('');
-    }
-  }, [selected]);
-
-  /** Pulsante "Valuta" abilitato solo se abbiamo un indirizzo con civico (estratto o inserito a mano) */
-  const isValutaDisabled =
-    !selected ||
-    isSubmitting ||
-    (!selected.hasHouseNumber && !manualHouseNumber.trim());
-
-  const handleValutaClick = () => {
-    if (selected) {
-      if (selected.hasHouseNumber) {
-        onValidSelect(selected);
-      } else if (manualHouseNumber.trim()) {
-        const displayNameWithCivic = insertHouseNumberIntoDisplayName(
-          selected.displayName,
-          selected.road,
-          manualHouseNumber.trim(),
-        );
-
-        onValidSelect({
-          ...selected,
-          displayName: displayNameWithCivic,
-          hasHouseNumber: true,
-        });
-      }
-    }
-  };
-
-  const handleReset = () => {
-    resetNominatim();
-    setManualHouseNumber('');
-  };
+    manualHouseNumber,
+    setManualHouseNumber,
+    inputRef,
+    listRef,
+    isValutaDisabled,
+    handleValutaClick,
+    handleReset,
+  } = useAddressAutocomplete({ onValidSelect, isSubmitting });
 
   return (
     <div className="w-full max-w-lg mx-auto">

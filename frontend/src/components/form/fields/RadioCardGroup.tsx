@@ -31,6 +31,8 @@ interface RadioCardGroupProps<T extends string = string> {
   onChange: (value: T) => void;
   /** Disposizione delle card: automatica per n° opzioni */
   columns?: 2 | 3 | 4 | 5 | 6 | 7 | 10;
+  /** Forza una larghezza fissa per ogni bottone se attivo */
+  isFixedWidth?: boolean;
 }
 
 export function RadioCardGroup<T extends string = string>({
@@ -41,17 +43,18 @@ export function RadioCardGroup<T extends string = string>({
   value,
   onChange,
   columns,
+  isFixedWidth = false,
 }: RadioCardGroupProps<T>) {
   // Colonne di default basate sul numero di opzioni
   const cols = columns ?? (options.length <= 4 ? options.length : options.length <= 6 ? 3 : 4);
 
   const gridClass: Record<number, string> = {
     2: 'grid-cols-2',
-    3: 'grid-cols-3',
-    4: 'grid-cols-4',
-    5: 'grid-cols-5',
-    6: 'grid-cols-6',
-    7: 'grid-cols-7',
+    3: 'grid-cols-1 sm:grid-cols-3',
+    4: 'grid-cols-2 sm:grid-cols-4',
+    5: 'grid-cols-2 sm:grid-cols-5',
+    6: 'grid-cols-3 sm:grid-cols-6',
+    7: 'grid-cols-4 sm:grid-cols-7',
     10: 'grid-cols-5 sm:grid-cols-10',
   };
 
@@ -66,11 +69,15 @@ export function RadioCardGroup<T extends string = string>({
         <span>{label}</span>
       </label>
 
-      {/* Griglia card */}
+      {/* Griglia card o flex wrapper a larghezza fissa */}
       <div
         role="radiogroup"
         aria-labelledby={`${id}-label`}
-        className={`grid ${gridClass[cols] ?? 'grid-cols-4'} gap-2`}
+        className={
+          isFixedWidth
+            ? 'flex flex-wrap gap-2'
+            : `grid ${gridClass[cols] ?? 'grid-cols-4'} gap-2`
+        }
       >
         {options.map((option) => {
           const isSelected = value === option.value;
@@ -86,9 +93,10 @@ export function RadioCardGroup<T extends string = string>({
               className={[
                 // Layout base
                 'relative flex items-center justify-center',
-                'h-10 rounded-xl px-2 py-2',
+                'min-h-[40px] h-auto rounded-xl px-2 py-2',
                 'cursor-pointer select-none',
                 'font-sans font-semibold text-sm text-center leading-tight',
+                isFixedWidth ? 'w-20 shrink-0' : '',
                 // Stato selezionato vs non selezionato
                 isSelected
                   ? 'border-2 border-brand-border-focus bg-brand-field text-brand-border-focus shadow-sm'

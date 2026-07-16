@@ -107,8 +107,8 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
       ══════════════════════════════════════════════════════════════════ */}
       <SectionHeader title="Dimensioni e stato" />
 
-      {/* mq — sempre visibile */}
-      <div className="mb-4">
+      {/* superficie e stato conservativo — affiancati su PC/tablet */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <NumberField
           id="sqm"
           label="Superficie:"
@@ -120,11 +120,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           min={1}
           max={9999}
         />
-      </div>
 
-
-      {/* stato conservativo — sempre visibile */}
-      <div className="mb-4">
         <SelectField
           id="condition"
           label="Stato conservativo:"
@@ -145,7 +141,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           options={ROOMS_OPTIONS}
           value={rooms}
           onChange={(v) => setField('rooms', v)}
-          columns={7}
+          isFixedWidth
         />
       </div>
 
@@ -159,7 +155,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
             options={BATHROOMS_OPTIONS}
             value={bathrooms}
             onChange={(v) => setField('bathrooms', v)}
-            columns={4}
+            isFixedWidth
           />
         </div>
       )}
@@ -174,7 +170,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
             options={FLOOR_OPTIONS}
             value={floor}
             onChange={(v) => setField('floor', v)}
-            columns={5}
+            isFixedWidth
           />
         </div>
       )}
@@ -184,8 +180,8 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
       ══════════════════════════════════════════════════════════════════ */}
       <SectionHeader title="Dettagli costruttivi" />
 
-      {/* anno di costruzione — sempre opzionale, sempre visibile */}
-      <div className="mb-4">
+      {/* anno di costruzione e classe energetica — affiancati su PC/tablet */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <NumberField
           id="build_year"
           label="Anno di costruzione:"
@@ -197,10 +193,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           max={new Date().getFullYear()}
           disclaimer="Se non lo sai, lascia pure vuoto."
         />
-      </div>
 
-      {/* classe energetica — sempre visibile */}
-      <div className="mb-4">
         <SelectField
           id="energy_class"
           label="Classe energetica:"
@@ -254,7 +247,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
             options={BALCONIES_OPTIONS}
             value={balconies}
             onChange={(v) => setField('balconies', v)}
-            columns={3}
+            isFixedWidth
           />
         </div>
       )}
@@ -308,7 +301,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
             options={WINDOWS_OPTIONS}
             value={windows}
             onChange={(v) => setField('windows', v)}
-            columns={3}
+            isFixedWidth
           />
         </div>
       )}

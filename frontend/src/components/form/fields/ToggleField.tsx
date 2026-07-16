@@ -58,7 +58,7 @@ export const ToggleField: React.FC<ToggleFieldProps> = ({ id, label, icon: Icon,
               className={[
                 // Layout
                 'relative flex items-center justify-center gap-1.5',
-                'h-10 w-20 rounded-xl px-4',
+                'min-h-[40px] h-auto w-20 rounded-xl px-4',
                 'cursor-pointer select-none',
                 'font-sans font-semibold text-sm',
                 // Stato

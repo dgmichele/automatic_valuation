@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast';
 import { useGeoLookup } from './hooks/useGeoLookup';
 import Header from './components/layout/Header';
 import { ScrollToTop } from './components/layout/ScrollToTop';
+import FormStepSkeleton from './components/shared/FormStepSkeleton';
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -75,23 +76,11 @@ const App = () => {
        */}
       {isLoading ? (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-field"
+          className="fixed inset-0 z-50 flex flex-col bg-[#f5f5f5] overflow-y-auto pt-16"
           role="status"
           aria-label="Ricerca zona in corso"
         >
-          {/* Skeleton animato — placeholder per il form step */}
-          <div className="w-full max-w-md px-6 space-y-4 animate-pulse">
-            <div className="h-6 rounded-lg bg-brand-border w-3/4 mx-auto" />
-            <div className="h-4 rounded-lg bg-brand-border w-1/2 mx-auto" />
-            <div className="mt-8 space-y-3">
-              <div className="h-12 rounded-xl bg-brand-border" />
-              <div className="h-12 rounded-xl bg-brand-border w-5/6" />
-              <div className="h-12 rounded-xl bg-brand-border w-4/6" />
-            </div>
-          </div>
-          <p className="mt-6 font-sans text-sm text-brand-placeholder">
-            Ricerca zona in corso…
-          </p>
+          <FormStepSkeleton />
         </div>
       ) : (
         /* Blocco <main /> unico con flex-1 per riempire lo spazio verticale */

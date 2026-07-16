@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 inspiration-files/
 instructions/
+landing-page/
 dist-ssr
 *.local
 

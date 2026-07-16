@@ -66,7 +66,7 @@ export const StickyFormNav: React.FC<StickyFormNavProps> = ({
             </>
           ) : isLastStep ? (
             <>
-              <span>Valuta</span>
+              <span>Valuta ora!</span>
               <FiCheck className="w-4 h-4" />
             </>
           ) : (

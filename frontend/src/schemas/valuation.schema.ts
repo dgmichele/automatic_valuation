@@ -113,6 +113,11 @@ export const stepTwoSchema = (propertyType: PropertyType) => {
   });
 };
 
+// ── Step 3 — Scopo valutazione ────────────────────────────────────────────────
+export const stepThreeSchema = z.object({
+  intent: z.string().min(1, 'Seleziona il tuo scopo'),
+});
+
 // ── Schema completo payload — ultima rete di sicurezza pre-submit ──────────────
 export const valuationPayloadSchema = z.object({
   // Geo (da store)

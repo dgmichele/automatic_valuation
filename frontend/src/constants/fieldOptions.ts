@@ -1,5 +1,5 @@
 /**
- * fieldOptions.ts — Opzioni statiche per i campi del form Step 2.
+ * fieldOptions.ts — Opzioni statiche per i campi del form Step 2 e Step 3.
  *
  * Ogni array contiene oggetti { value, label } dove:
  *   - value  → stringa esatta inviata al backend (allineata a ValuationPayload)
@@ -107,4 +107,28 @@ export const WINDOWS_OPTIONS: { value: NonNullable<ValuationPayload['windows']>;
   { value: 'No', label: 'No' },
   { value: '1', label: '1' },
   { value: '2+', label: '2+' },
+];
+
+// ── Scopo valutazione (intent) — Step 3 ─────────────────────────────────────
+export const INTENT_OPTIONS: { value: string; label: string }[] = [
+  {
+    value: 'Voglio vendere casa in questo momento',
+    label: 'Voglio vendere casa in questo momento',
+  },
+  {
+    value: 'Voglio vendere casa nei prossimi mesi',
+    label: 'Voglio vendere casa nei prossimi mesi',
+  },
+  {
+    value: 'Voglio vendere casa entro 1 anno',
+    label: 'Voglio vendere casa entro 1 anno',
+  },
+  {
+    value: 'Voglio solo conoscere il valore del mio immobile',
+    label: 'Voglio solo conoscere il valore del mio immobile',
+  },
+  {
+    value: 'Sono un addetto ai lavori del settore immobiliare',
+    label: 'Sono un addetto ai lavori del settore immobiliare',
+  },
 ];

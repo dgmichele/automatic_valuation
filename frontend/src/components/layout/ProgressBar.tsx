@@ -13,7 +13,7 @@ import { useValuationStore } from '../../store/useValuationStore';
 const steps = [
   { id: 1, label: 'Tipologia', description: 'Tipo immobile' },
   { id: 2, label: 'Caratteristiche', description: 'Dettagli e interni' },
-  { id: 3, label: 'Scopo', description: 'Dati di invio' },
+  { id: 3, label: 'Fatto!', description: 'Invia richiesta' },
 ];
 
 export const ProgressBar: React.FC = () => {

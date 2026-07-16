@@ -3,8 +3,10 @@ import { AddressBadge } from '../components/layout/AddressBadge';
 import { EditAddressModal } from '../components/form/EditAddressModal';
 import { StickyFormNav } from '../components/form/StickyFormNav';
 import { StepPropertyType } from '../components/form/steps/StepPropertyType';
+import { StepFeatures } from '../components/form/steps/StepFeatures';
 import { useValuationForm } from '../hooks/useValuationForm';
 import { useStepPropertyType } from '../hooks/useStepPropertyType';
+import { useStepFeatures } from '../hooks/useStepFeatures';
 
 const FormStepPage = () => {
   const {
@@ -25,8 +27,14 @@ const FormStepPage = () => {
     isValid: isStep1Valid,
   } = useStepPropertyType();
 
+  // Step 2 — logica di business (separata dalla UI)
+  const step2 = useStepFeatures();
+
   // Determina se il pulsante Avanti è disabilitato per lo step corrente
-  const isNextDisabled = currentStep === 1 ? !isStep1Valid : false;
+  const isNextDisabled =
+    currentStep === 1 ? !isStep1Valid :
+    currentStep === 2 ? !step2.isValid :
+    false;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-start w-full max-w-4xl mx-auto px-4 pt-4 pb-24 md:py-8">
@@ -43,9 +51,7 @@ const FormStepPage = () => {
       />
 
       {/* Contenitore step form */}
-      <div
-        className="w-full max-w-2xl mt-5 mb-30"
-      >
+      <div className="w-full max-w-2xl mt-5 mb-30">
         {currentStep === 1 && (
           <StepPropertyType
             selectedType={selectedType}
@@ -53,12 +59,11 @@ const FormStepPage = () => {
           />
         )}
 
-        {/* Step 2 e Step 3 — placeholder in attesa della Fase 3 */}
         {currentStep === 2 && (
-          <p className="text-brand-paragraph font-sans text-sm">
-            Step 2 — Caratteristiche immobile (in sviluppo)
-          </p>
+          <StepFeatures {...step2} />
         )}
+
+        {/* Step 3 — placeholder in attesa della Fase 3 */}
         {currentStep === 3 && (
           <p className="text-brand-paragraph font-sans text-sm">
             Step 3 — Scopo della valutazione (in sviluppo)

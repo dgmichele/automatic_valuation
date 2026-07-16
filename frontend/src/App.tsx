@@ -14,6 +14,7 @@ import { Outlet, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useGeoLookup } from './hooks/useGeoLookup';
 import Header from './components/layout/Header';
+import { ScrollToTop } from './components/layout/ScrollToTop';
 
 const App = () => {
   const [searchParams] = useSearchParams();
@@ -43,6 +44,9 @@ const App = () => {
 
   return (
     <>
+      {/* Reset dello scroll automatico ad ogni cambio di step o pagina */}
+      <ScrollToTop />
+
       {/* Header globale — presente su tutte le route */}
       <Header />
       {/* Toaster globale — stile coerente col branding */}

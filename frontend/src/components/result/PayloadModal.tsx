@@ -24,14 +24,24 @@ interface PayloadModalProps {
 type ModalStep = 'form' | 'submitting' | 'success';
 
 export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) => {
-  const [modalStep, setModalStep] = useState<ModalStep>('form');
-
   const storedFirstName = useValuationStore((s) => s.first_name);
   const storedLastName = useValuationStore((s) => s.last_name);
   const storedEmail = useValuationStore((s) => s.email);
   const storedPhone = useValuationStore((s) => s.phone);
   const setLeadFields = useValuationStore((s) => s.setLeadFields);
   const resetStore = useValuationStore((s) => s.resetStore);
+  const result = useValuationStore((s) => s.result);
+
+  // Se result è già presente nello store (valutazione già inviata), imposta direttamente lo stato success
+  const [modalStep, setModalStep] = useState<ModalStep>(() =>
+    result !== null ? 'success' : 'form',
+  );
+
+  React.useEffect(() => {
+    if (isOpen && result !== null) {
+      setModalStep('success');
+    }
+  }, [isOpen, result]);
 
   const { submitLeadAsync } = useLeadSubmission();
 
@@ -235,7 +245,7 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-brand-border">
+                <div className="pt-3">
                   <button
                     type="submit"
                     className="w-full py-3.5 px-6 bg-brand-primary text-brand-field font-sans font-bold text-base rounded-xl hover:bg-brand-dark transition duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer"

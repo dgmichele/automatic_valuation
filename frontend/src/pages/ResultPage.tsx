@@ -4,6 +4,7 @@ import { useValuationStore } from '../store/useValuationStore';
 import CalculatingOverlay from '../components/result/CalculatingOverlay';
 import ResultCard from '../components/result/ResultCard';
 import PayloadModal from '../components/result/PayloadModal';
+import Footer from '../components/layout/Footer';
 
 export const ResultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,8 +14,10 @@ export const ResultPage: React.FC = () => {
   const property_type = useValuationStore((s) => s.property_type);
   const sqm = useValuationStore((s) => s.sqm);
   const intent = useValuationStore((s) => s.intent);
+  const result = useValuationStore((s) => s.result);
 
-  const [isCalculating, setIsCalculating] = useState(true);
+  // Se la valutazione è già stata completata/inviata (result != null), salta l'overlay di 3s
+  const [isCalculating, setIsCalculating] = useState(() => !result);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Guard: verifica che i dati essenziali del form siano presenti nello store
@@ -30,18 +33,23 @@ export const ResultPage: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 w-full max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
-      {isCalculating ? (
-        <CalculatingOverlay onComplete={() => setIsCalculating(false)} durationMs={3000} />
-      ) : (
-        <>
-          {/* Card risultato con valore criptato e pulsante Sblocca */}
-          <ResultCard onUnlockClick={() => setIsModalOpen(true)} />
+    <div className="flex-1 flex flex-col">
+      <div className="flex-1 mt-6 mb-20 w-full max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8 flex flex-col justify-center">
+        {isCalculating ? (
+          <CalculatingOverlay onComplete={() => setIsCalculating(false)} durationMs={3000} />
+        ) : (
+          <>
+            {/* Card risultato con valore criptato e pulsante Sblocca */}
+            <ResultCard onUnlockClick={() => setIsModalOpen(true)} />
 
-          {/* Modal unico per Form Lead, Spinner invio (2s) e Ringraziamento */}
-          <PayloadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        </>
-      )}
+            {/* Modal unico per Form Lead, Spinner invio (2s) e Ringraziamento */}
+            <PayloadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          </>
+        )}
+      </div>
+
+      {/* Footer globale adattato coerentemente con FallbackPage */}
+      <Footer />
     </div>
   );
 };

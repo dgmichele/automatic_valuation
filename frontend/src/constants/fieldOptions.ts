@@ -112,16 +112,16 @@ export const WINDOWS_OPTIONS: { value: NonNullable<ValuationPayload['windows']>;
 // ── Scopo valutazione (intent) — Step 3 ─────────────────────────────────────
 export const INTENT_OPTIONS: { value: string; label: string }[] = [
   {
-    value: 'Voglio vendere casa in questo momento',
-    label: 'Voglio vendere casa in questo momento',
+    value: 'Voglio vendere l\'immobile in questo momento',
+    label: 'Voglio vendere l\'immobile in questo momento',
   },
   {
-    value: 'Voglio vendere casa nei prossimi mesi',
-    label: 'Voglio vendere casa nei prossimi mesi',
+    value: 'Voglio vendere l\'immobile nei prossimi mesi',
+    label: 'Voglio vendere l\'immobile nei prossimi mesi',
   },
   {
-    value: 'Voglio vendere casa entro 1 anno',
-    label: 'Voglio vendere casa entro 1 anno',
+    value: 'Voglio vendere l\'immobile entro 1 anno',
+    label: 'Voglio vendere l\'immobile entro 1 anno',
   },
   {
     value: 'Voglio solo conoscere il valore del mio immobile',

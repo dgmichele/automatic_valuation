@@ -52,9 +52,6 @@ export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) =
     },
     onSuccess: (data) => {
       setResult(data);
-      toast.success(
-        `${TOAST_MESSAGES.VALUATION_SUCCESS.title} ${TOAST_MESSAGES.VALUATION_SUCCESS.message}`,
-      );
       if (onSuccess) {
         onSuccess();
       }

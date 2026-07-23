@@ -96,7 +96,7 @@ export const ValuationEmail = ({
               </Row>
 
               <Text style={styles.cardNote}>
-                * Stima basata sui dati OMI (Osservatorio del Mercato Immobiliare).
+                *Stima puramente indicativa basata sui dati OMI, pertanto potrebbe non corrispondere al reale valore di mercato. Una corretta valutazione potrà essere effettuata a seguito di sopralluogo dell’immobile ed ad un’analisi di mercato.
               </Text>
             </Section>
           </Section>

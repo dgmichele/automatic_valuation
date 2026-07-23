@@ -11,9 +11,9 @@ import { INTENT_OPTIONS } from '../../../constants/fieldOptions';
 
 // ── Mappa icone per ciascun intent ────────────────────────────────────────────
 const INTENT_ICONS: Record<string, React.ElementType> = {
-  'Voglio vendere l\'immobile in questo momento': BsLightningCharge,
-  'Voglio vendere l\'immobile nei prossimi mesi': BsClockHistory,
-  'Voglio vendere l\'immobile entro 1 anno': BsHourglassSplit,
+  'Voglio vendere il mio immobile in questo momento': BsLightningCharge,
+  'Voglio vendere il mio immobile nei prossimi mesi': BsClockHistory,
+  'Voglio vendere il mio immobile entro 1 anno': BsHourglassSplit,
   'Voglio solo conoscere il valore del mio immobile': BsSearch,
   'Sono un addetto ai lavori del settore immobiliare': BsBriefcase,
 };

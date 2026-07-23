@@ -152,8 +152,21 @@ export const valuationPayloadSchema = z.object({
   intent: z.string().min(1),
 
   // Lead (da ResultPage)
-  first_name: z.string().min(2),
-  last_name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(1),
+  first_name: z.string().min(2, 'Il nome deve contenere almeno 2 caratteri'),
+  last_name: z.string().min(2, 'Il cognome deve contenere almeno 2 caratteri'),
+  email: z.string().email('Inserisci un indirizzo email valido'),
+  phone: z.string().min(6, 'Inserisci un numero di telefono valido'),
 });
+
+export const leadSchema = z.object({
+  first_name: z.string().min(2, 'Il nome deve contenere almeno 2 caratteri'),
+  last_name: z.string().min(2, 'Il cognome deve contenere almeno 2 caratteri'),
+  email: z.string().email('Inserisci un indirizzo email valido'),
+  phone: z.string().min(6, 'Inserisci un numero di telefono valido'),
+  privacy: z.boolean().refine((val) => val === true, {
+    message: 'Devi accettare l\'informativa sulla privacy per proseguire',
+  }),
+});
+
+export type LeadFormData = z.infer<typeof leadSchema>;
+

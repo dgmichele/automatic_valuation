@@ -38,10 +38,10 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
   );
 
   React.useEffect(() => {
-    if (isOpen && result !== null) {
+    if (isOpen && result !== null && modalStep === 'form') {
       setModalStep('success');
     }
-  }, [isOpen, result]);
+  }, [isOpen, result, modalStep]);
 
   const { submitLeadAsync } = useLeadSubmission();
 

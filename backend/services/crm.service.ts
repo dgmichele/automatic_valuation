@@ -34,6 +34,7 @@ export interface LeadData {
   // Condizionali: null se non applicabile alla tipologia
   bathrooms?: string | null;
   floor?: string | null;
+  build_year?: number | null;
   energy_class: string;
   heating: string;
   elevator?: boolean | null;
@@ -91,9 +92,10 @@ export const syncToCRM = async (
   };
 
   // Campi condizionali: aggiunti solo se non null (dipendono dalla tipologia)
-  if (leadData.bathrooms != null)  fields.bagni        = leadData.bathrooms;
-  if (leadData.floor != null)      fields.piano        = leadData.floor;
-  if (leadData.balconies != null)  fields.balconi      = leadData.balconies;
+  if (leadData.bathrooms != null)  fields.bagni                = leadData.bathrooms;
+  if (leadData.floor != null)      fields.piano                = leadData.floor;
+  if (leadData.build_year != null) fields.anno_di_costruzione = String(leadData.build_year);
+  if (leadData.balconies != null)  fields.balconi              = leadData.balconies;
   if (leadData.windows != null)    fields.vetrine      = leadData.windows;
 
   const ascensore = boolToSiNo(leadData.elevator);

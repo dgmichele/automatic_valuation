@@ -97,7 +97,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
         <h2 className="font-serif font-black text-2xl text-brand-dark leading-tight">
           Raccontaci dell'immobile
         </h2>
-        <p className="mt-2 mb-[-20px] font-sans text-sm text-brand-paragraph">
+        <p className="mt-2 -mb-5 font-sans text-sm text-brand-paragraph">
           Compila i campi per ottenere una stima accurata:
         </p>
       </div>

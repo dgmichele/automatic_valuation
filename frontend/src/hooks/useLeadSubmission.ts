@@ -58,7 +58,8 @@ export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) =
     },
     onError: (error: any) => {
       const code = error?.code || error?.response?.data?.error?.code;
-      const message = error?.message || error?.response?.data?.error?.message;
+      const backendMessage = error?.response?.data?.error?.message;
+      const message = backendMessage || error?.message;
 
       if (code === 'VALIDATION_ERROR') {
         toast.error(`Errore validazione: ${message || 'Dati del form non validi'}`);
@@ -66,6 +67,8 @@ export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) =
         toast.error(
           `${TOAST_MESSAGES.GEO_OUTSIDE_AREA.title}: ${TOAST_MESSAGES.GEO_OUTSIDE_AREA.message}`,
         );
+      } else if (message) {
+        toast.error(message);
       } else {
         toast.error(
           `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,

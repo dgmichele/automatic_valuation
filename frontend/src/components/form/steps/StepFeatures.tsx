@@ -145,7 +145,7 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
         />
       </div>
 
-      {/* bagni — nascosto per Negozio */}
+      {/* bagni — sempre visibile per tutte le tipologie */}
       {isVisible('bathrooms') && (
         <div className="mb-4">
           <RadioCardGroup

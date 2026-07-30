@@ -54,7 +54,7 @@ export const stepTwoSchema = (propertyType: PropertyType) => {
     // rooms — sempre obbligatorio (string, non number)
     rooms: z.string().min(1, 'Seleziona il numero di locali'),
 
-    // bathrooms — obbligatorio tranne Negozio
+    // bathrooms — obbligatorio per tutte le tipologie
     bathrooms: visible('bathrooms')
       ? z.enum(['1', '2', '3', '3+'], { error: 'Seleziona il numero di bagni' })
       : z.enum(['1', '2', '3', '3+']).optional().nullable(),

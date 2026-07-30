@@ -70,9 +70,10 @@ export const useGeoLookup = ({ lat, lon, address }: UseGeoLookupParams) => {
         // Naviga verso FallbackPage con flag di "fuori area" via state
         navigate('/', { replace: true, state: { outsideArea: true } });
       } else {
+        const backendMessage = (error as any)?.response?.data?.error?.message || (error as any)?.message;
         // Errore generico: toast + torna a FallbackPage
         toast.error(
-          `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,
+          backendMessage || `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,
         );
         navigate('/', { replace: true });
       }

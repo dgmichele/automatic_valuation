@@ -9,7 +9,7 @@
  *
  * Regole chiave:
  *   - floor, elevator          → null per Villa / Casa ind. / Casa semi-ind. / Negozio
- *   - bathrooms                → null per Negozio
+ *   - bathrooms                → sempre visibile per tutte le tipologie (compreso Negozio)
  *   - terrace, garden          → null per Ufficio e Negozio
  *   - windows                  → visibile SOLO per Negozio
  *   - heating "Centralizzato"  → escluso per Villa / Casa ind. / Casa semi-ind.
@@ -103,8 +103,7 @@ export const FIELD_VISIBILITY: Record<PropertyType, Set<Step2Field>> = {
   ]),
 
   Negozio: new Set([
-    'sqm', 'condition', 'rooms',
-    // 'bathrooms' → null
+    'sqm', 'condition', 'rooms', 'bathrooms',
     // 'floor' → null
     'build_year', 'energy_class', 'heating',
     // 'elevator' → null

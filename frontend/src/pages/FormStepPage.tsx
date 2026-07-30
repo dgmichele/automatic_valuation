@@ -30,6 +30,7 @@ const FormStepPage = () => {
   const {
     selectedType,
     selectPropertyType,
+    options: propertyTypeOptions,
     isValid: isStep1Valid,
   } = useStepPropertyType();
 
@@ -74,6 +75,7 @@ const FormStepPage = () => {
           <StepPropertyType
             selectedType={selectedType}
             onSelect={selectPropertyType}
+            options={propertyTypeOptions}
           />
         )}
 

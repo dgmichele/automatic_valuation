@@ -26,7 +26,6 @@ import {
   BsCheckCircleFill,
 } from 'react-icons/bs';
 import type { PropertyType } from '../../../hooks/useStepPropertyType';
-import { PROPERTY_TYPE_OPTIONS } from '../../../hooks/useStepPropertyType';
 
 // ── Mappa icone per tipologia ─────────────────────────────────────────────────
 const PROPERTY_ICONS: Record<PropertyType, React.ElementType> = {
@@ -44,12 +43,15 @@ interface StepPropertyTypeProps {
   selectedType: PropertyType | null;
   /** Callback per aggiornare la selezione */
   onSelect: (type: PropertyType) => void;
+  /** Lista opzioni di tipologia disponibili per la zona corrente */
+  options: { value: PropertyType; label: string }[];
 }
 
 // ── Componente ────────────────────────────────────────────────────────────────
 export const StepPropertyType: React.FC<StepPropertyTypeProps> = ({
   selectedType,
   onSelect,
+  options,
 }) => {
   return (
     <div className="w-full">
@@ -63,13 +65,17 @@ export const StepPropertyType: React.FC<StepPropertyTypeProps> = ({
         </p>
       </div>
 
-      {/* Griglia card */}
+      {/* Griglia card — 4 opzioni: grid-cols-2 fissa per PC/tablet/mobile; 6 opzioni: md:grid-cols-3 */}
       <div
-        className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4"
+        className={
+          options.length === 4
+            ? 'grid grid-cols-2 gap-3 md:gap-4'
+            : 'grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4'
+        }
         role="radiogroup"
         aria-label="Tipologia immobile"
       >
-        {PROPERTY_TYPE_OPTIONS.map(({ value, label }) => {
+        {options.map(({ value, label }) => {
           const Icon = PROPERTY_ICONS[value];
           const isSelected = selectedType === value;
 

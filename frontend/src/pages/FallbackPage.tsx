@@ -16,7 +16,7 @@
  */
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { useToast } from '../context/ToastContext';
 import AddressAutocomplete from '../components/fallback/AddressAutocomplete';
 import ErrorScreen from '../components/shared/ErrorScreen';
 import Footer from '../components/layout/Footer';
@@ -29,6 +29,7 @@ const FallbackPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { setGeo } = useValuationStore();
+  const { showError } = useToast();
 
   // Stato di lookup in corso (disabilita il pulsante "Valuta" durante la chiamata)
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,9 +69,10 @@ const FallbackPage = () => {
         // Zona fuori area: mostra schermata dedicata inline
         setIsOutsideArea(true);
       } else {
-        // Errore generico: toast
-        toast.error(
-          `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,
+        // Errore generico: toast centralizzato con messaggio backend se disponibile
+        const backendMessage = (err as any)?.response?.data?.error?.message || (err as any)?.message;
+        showError(
+          backendMessage || `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,
         );
       }
     } finally {

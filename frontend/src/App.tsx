@@ -9,15 +9,25 @@
  *     404 OUTSIDE_AREA → redirect a "/" con state { outsideArea: true }
  *     errore generico → toast + redirect a "/"
  * - Durante il lookup: mostra un overlay skeleton a schermo intero
+ *
+ * Struttura a due livelli:
+ * - <App> → monta <ToastProvider> e <Toaster>, poi renderizza <AppContent>
+ * - <AppContent> → vive dentro il ToastProvider, quindi può usare useToast()
+ *   tramite useGeoLookup senza errori di context mancante.
  */
 import { Outlet, useSearchParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { ToastProvider } from './context/ToastContext';
 import { useGeoLookup } from './hooks/useGeoLookup';
 import Header from './components/layout/Header';
 import { ScrollToTop } from './components/layout/ScrollToTop';
 import FormStepSkeleton from './components/shared/FormStepSkeleton';
 
-const App = () => {
+/**
+ * AppContent — componente interno che usa useGeoLookup (e quindi useToast).
+ * Deve essere renderizzato dentro <ToastProvider>, mai al suo esterno.
+ */
+const AppContent = () => {
   const [searchParams] = useSearchParams();
 
   // Estrae lat, lon, address dai query params
@@ -50,24 +60,6 @@ const App = () => {
 
       {/* Header globale — presente su tutte le route */}
       <Header />
-      {/* Toaster globale — stile coerente col branding */}
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: '#1e1e1e',
-          },
-          success: {
-            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
-          },
-          error: {
-            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
-          },
-        }}
-      />
 
       {/*
        * Overlay di caricamento durante il geo-lookup iniziale.
@@ -93,5 +85,41 @@ const App = () => {
   );
 };
 
-export default App;
+/**
+ * App — root del layout.
+ * Monta ToastProvider e Toaster prima di renderizzare AppContent,
+ * così useToast() è sempre disponibile nell'albero figlio.
+ */
+const App = () => {
+  return (
+    <ToastProvider>
+      {/*
+       * Toaster centralizzato — posizionato dentro ToastProvider.
+       * containerStyle.top = 72px allineato all'altezza dell'header (h-14 + py-2×2).
+       * I toast appaiono sempre sotto l'header, mai sovrapposti.
+       */}
+      <Toaster
+        position="top-center"
+        containerStyle={{ top: 90 }}
+        toastOptions={{
+          duration: 4500,
+          style: {
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            color: '#1e1e1e',
+            maxWidth: '480px',
+          },
+          success: {
+            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
+          },
+          error: {
+            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
+          },
+        }}
+      />
+      <AppContent />
+    </ToastProvider>
+  );
+};
 
+export default App;

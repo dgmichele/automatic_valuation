@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
 import { submitValuation } from '../api/valuation.api';
 import { useValuationStore } from '../store/useValuationStore';
 import { valuationPayloadSchema } from '../schemas/valuation.schema';
 import type { LeadFormData } from '../schemas/valuation.schema';
+import { useToast } from '../context/ToastContext';
 import { TOAST_MESSAGES } from '../types/feedback';
 import type { ValuationPayload } from '../types/valuation';
 
@@ -14,6 +14,7 @@ interface UseLeadSubmissionParams {
 export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) => {
   const store = useValuationStore();
   const setResult = useValuationStore((s) => s.setResult);
+  const { showError } = useToast();
 
   const mutation = useMutation({
     mutationFn: async (leadData: LeadFormData) => {
@@ -58,19 +59,24 @@ export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) =
     },
     onError: (error: any) => {
       const code = error?.code || error?.response?.data?.error?.code;
+      // Il messaggio backend viene mostrato fedelmente, senza riscritture
       const backendMessage = error?.response?.data?.error?.message;
       const message = backendMessage || error?.message;
 
       if (code === 'VALIDATION_ERROR') {
-        toast.error(`Errore validazione: ${message || 'Dati del form non validi'}`);
+        // Errore di validazione: mostriamo il messaggio backend preciso + fallback leggibile
+        showError(`Dati non validi: ${message || 'controlla i campi del form e riprova.'}`);
       } else if (code === 'OUTSIDE_AREA') {
-        toast.error(
+        // Zona non coperta: messaggio specifico e descrittivo
+        showError(
           `${TOAST_MESSAGES.GEO_OUTSIDE_AREA.title}: ${TOAST_MESSAGES.GEO_OUTSIDE_AREA.message}`,
         );
       } else if (message) {
-        toast.error(message);
+        // Qualsiasi altro messaggio dal backend: lo mostriamo direttamente
+        showError(message);
       } else {
-        toast.error(
+        // Fallback finale se non c'è nessun messaggio disponibile
+        showError(
           `${TOAST_MESSAGES.GENERIC_ERROR.title}: ${TOAST_MESSAGES.GENERIC_ERROR.message}`,
         );
       }

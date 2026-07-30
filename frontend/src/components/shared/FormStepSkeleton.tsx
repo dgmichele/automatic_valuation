@@ -7,7 +7,7 @@ export const FormStepSkeleton: React.FC = () => {
       {/* Barra di progresso in cima al form */}
       <div className="w-full max-w-2xl mx-auto px-4 py-6">
         <div className="relative flex items-center justify-between">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[3px] bg-brand-border/40 rounded-full -z-10" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.75 bg-brand-border/40 rounded-full -z-10" />
           {/* Nodi fittizi per i 3 step */}
           {[1, 2, 3].map((step) => (
             <div key={step} className="relative flex flex-col items-center">

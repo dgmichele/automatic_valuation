@@ -14,7 +14,7 @@
  * - OUTSIDE_AREA → mostra ErrorScreen "outside-area"
  * - Errore generico → toast errore, rimane sulla pagina
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import AddressAutocomplete from '../components/fallback/AddressAutocomplete';
@@ -38,6 +38,15 @@ const FallbackPage = () => {
     // Se siamo arrivati qui da useGeoLookup con flag outsideArea, lo mostriamo subito
     Boolean((location.state as { outsideArea?: boolean } | null)?.outsideArea),
   );
+
+  // FallbackPage può essere già montata quando useGeoLookup chiama navigate('/', { state: { outsideArea: true } }).
+  // In quel caso useState non si ri-esegue (il componente non fa unmount/remount perché la route '/' era già attiva).
+  // Questo effect reagisce ai cambiamenti di location.state e aggiorna isOutsideArea di conseguenza.
+  useEffect(() => {
+    if ((location.state as { outsideArea?: boolean } | null)?.outsideArea) {
+      setIsOutsideArea(true);
+    }
+  }, [location.state]);
 
   /**
    * Gestisce la selezione di un indirizzo valido da AddressAutocomplete.

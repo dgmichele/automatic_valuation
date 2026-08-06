@@ -16,7 +16,7 @@ if (process.env.NODE_ENV !== 'production') {
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { logInfo, logError } from './services/logger.service';
+import { logInfo, logWarn, logError } from './services/logger.service';
 import { errorHandler } from './middleware/errorHandler.middleware';
 
 // ============= VALIDAZIONE VARIABILI D'AMBIENTE =============
@@ -30,10 +30,11 @@ const requiredEnvVars = [
 ];
 
 const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
-
-if (missingEnvVars.length > 0) {
-  logError('[SERVER] ❌ Variabili d\'ambiente mancanti:', new Error(missingEnvVars.join(', ')));
-  process.exit(1);
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`[SERVER FATAL] ❌ Manca la variabile d'ambiente richiesta: ${envVar}`);
+    process.exit(1);
+  }
 }
 
 logInfo('[SERVER] ✅ Variabili d\'ambiente caricate e validate');
@@ -58,14 +59,25 @@ loadPolygons();
 app.use(helmet());
 logInfo('[SERVER] ✅ Helmet configurato');
 
-// CORS — accetta richieste solo dall'origine configurata
+// CORS — accetta richieste solo dalle origini configurate (supporta origini multiple separate da virgola)
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+  : [];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logWarn(`[CORS] Richiesta bloccata da origine non autorizzata: ${origin}`);
+        callback(new Error('Origine non consentita dalle policy CORS'));
+      }
+    },
     credentials: true,
   })
 );
-logInfo('[SERVER] ✅ CORS configurato per: ' + process.env.CORS_ORIGIN);
+logInfo('[SERVER] ✅ CORS configurato per origini: ' + allowedOrigins.join(', '));
 
 // Body parser JSON e form-urlencoded
 app.use(express.json());

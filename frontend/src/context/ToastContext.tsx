@@ -17,11 +17,9 @@ import toast from 'react-hot-toast';
 
 interface ToastContextValue {
   /** Mostra un toast di errore con il messaggio fornito (di solito dal backend). */
-  showError: (message: string) => void;
+  showError: (message: string, id?: string) => void;
   /** Mostra un toast di successo. */
-  showSuccess: (message: string) => void;
-  /** Mostra un toast di avviso. */
-  showWarning: (message: string) => void;
+  showSuccess: (message: string, id?: string) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -43,29 +41,20 @@ export const useToast = (): ToastContextValue => {
  * Non renderizza nulla di visibile: il <Toaster> rimane in App.tsx.
  */
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
-  const showError = (message: string) => {
-    toast.error(message);
+  const showError = (message: string, id?: string) => {
+    // Usiamo id o message come id per far sì che react-hot-toast eviti toast duplicati identici
+    toast.error(message, { id: id || message });
   };
 
-  const showSuccess = (message: string) => {
-    toast.success(message);
+  const showSuccess = (message: string, id?: string) => {
+    toast.success(message, { id: id || message });
   };
 
-  const showWarning = (message: string) => {
-    // react-hot-toast non ha un tipo "warning" nativo:
-    // usiamo toast() custom con icona e stile coerente al branding.
-    toast(message, {
-      icon: '⚠️',
-      style: {
-        background: '#fffbfc',
-        color: '#1e1e1e',
-        border: '1px solid #f5a623',
-      },
-    });
-  };
+  // test toast in console
+  (window as any).toast = { showError, showSuccess };
 
   return (
-    <ToastContext.Provider value={{ showError, showSuccess, showWarning }}>
+    <ToastContext.Provider value={{ showError, showSuccess }}>
       {children}
     </ToastContext.Provider>
   );

@@ -34,6 +34,7 @@ export const useAddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
+    isError,
     handleSelect,
     reset: resetNominatim,
   } = useNominatim();
@@ -103,6 +104,7 @@ export const useAddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
+    isError,
     handleSelect,
     manualHouseNumber,
     setManualHouseNumber,

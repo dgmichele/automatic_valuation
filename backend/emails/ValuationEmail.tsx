@@ -48,7 +48,7 @@ export const ValuationEmail = ({
     <Html lang="it" dir="ltr">
       <Head />
       <Preview>
-        Scopri il valore stimato del tuo immobile in via {address}!
+        Scopri il valore stimato del tuo immobile in {address}!
       </Preview>
 
       <Body style={styles.main}>

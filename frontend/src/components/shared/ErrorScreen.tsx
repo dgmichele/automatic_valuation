@@ -23,7 +23,7 @@ const ERROR_CONTENT = {
     Icon: MdLocationOff,
     title: 'Zona non coperta',
     description:
-      "L'indirizzo inserito non rientra nell'area di competenza di Bich Immobiliare. Al momento offriamo il servizio di valutazione nella zona del Canavese.",
+      "L'indirizzo inserito non rientra nella nostra zona di competenza.",
   },
   generic: {
     Icon: MdErrorOutline,

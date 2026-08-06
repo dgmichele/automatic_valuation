@@ -29,6 +29,7 @@ const AddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
+    isError,
     handleSelect,
     manualHouseNumber,
     setManualHouseNumber,
@@ -160,14 +161,20 @@ const AddressAutocomplete = ({
         </div>
       )}
 
-      {/* ── Avviso ricerca attiva senza selezione ── */}
+      {/* ── Avviso ricerca attiva senza selezione / errore ── */}
       {query.length >= 3 &&
         !isLoading &&
         suggestions.length === 0 &&
         !selected && (
-          <p className="mt-2 font-sans text-xs text-brand-placeholder">
-            Nessun risultato trovato. Prova a essere più specifico.
-          </p>
+          isError ? (
+            <p className="mt-2 font-sans text-xs font-medium text-red-600">
+              Servizio di ricerca indirizzi temporaneamente non disponibile. Riprova tra poco.
+            </p>
+          ) : (
+            <p className="mt-2 font-sans text-xs text-brand-placeholder">
+              Nessun risultato trovato. Prova a essere più specifico.
+            </p>
+          )
         )}
 
       {/* ── Pulsante "Valuta" ── */}

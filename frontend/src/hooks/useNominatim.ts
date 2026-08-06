@@ -116,6 +116,7 @@ export const useNominatim = () => {
   const [suggestions, setSuggestions] = useState<NominatimSuggestion[]>([]);
   const [selected, setSelected] = useState<SelectedAddress | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [missingHouseNumber, setMissingHouseNumber] = useState(false);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -149,6 +150,13 @@ export const useNominatim = () => {
       abortController.current = new AbortController();
 
       setIsLoading(true);
+      setIsError(false);
+
+      const timeoutId = setTimeout(() => {
+        if (abortController.current) {
+          abortController.current.abort();
+        }
+      }, 8000);
 
       try {
         const cleanedQuery = cleanQueryForSearch(searchQuery);
@@ -178,7 +186,7 @@ export const useNominatim = () => {
 
         if (!response.ok) throw new Error('Nominatim non disponibile');
 
-                const data: NominatimSuggestion[] = await response.json();
+        const data: NominatimSuggestion[] = await response.json();
         
         // Formattazione testi e de-duplicazione
         const formattedData = data.map(s => {
@@ -207,12 +215,15 @@ export const useNominatim = () => {
           return true;
         });
 
+        setIsError(false);
         setSuggestions(uniqueData);
       } catch (err: unknown) {
         if ((err as Error)?.name !== 'AbortError') {
           setSuggestions([]);
+          setIsError(true);
         }
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
       }
     },
@@ -229,6 +240,7 @@ export const useNominatim = () => {
 
     setSelected(null);
     setMissingHouseNumber(false);
+    setIsError(false);
 
     if (query.length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
@@ -294,6 +306,7 @@ export const useNominatim = () => {
     setSuggestions([]);
     setSelected(null);
     setIsLoading(false);
+    setIsError(false);
     setMissingHouseNumber(false);
   }, []);
 
@@ -303,6 +316,7 @@ export const useNominatim = () => {
     suggestions,
     selected,
     isLoading,
+    isError,
     missingHouseNumber,
     handleSelect,
     reset,

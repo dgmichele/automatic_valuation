@@ -95,7 +95,7 @@ const App = () => {
     <ToastProvider>
       {/*
        * Toaster centralizzato — posizionato dentro ToastProvider.
-       * containerStyle.top = 72px allineato all'altezza dell'header (h-14 + py-2×2).
+       * containerStyle.top = 90px allineato all'altezza dell'header (h-14 + py-2×2).
        * I toast appaiono sempre sotto l'header, mai sovrapposti.
        */}
       <Toaster
@@ -110,10 +110,10 @@ const App = () => {
             maxWidth: '480px',
           },
           success: {
-            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
+            iconTheme: { primary: '#16a34a', secondary: '#fffbfc' },
           },
           error: {
-            iconTheme: { primary: '#b41c3c', secondary: '#fffbfc' },
+            iconTheme: { primary: 'red', secondary: '#fffbfc' },
           },
         }}
       />

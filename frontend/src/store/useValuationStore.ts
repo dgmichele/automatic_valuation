@@ -47,6 +47,7 @@ type LeadSlice = Partial<
 interface UiSlice {
   currentStep: 1 | 2 | 3;
   result: ValuationResult | null;
+  isCompleted: boolean;
 }
 
 // ── Store completo ─────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ interface ValuationStore extends GeoSlice, FormSlice, LeadSlice, UiSlice {
   // Azioni UI
   setCurrentStep: (step: 1 | 2 | 3) => void;
   setResult: (result: ValuationResult | null) => void;
+  setCompleted: (value: boolean) => void;
 
   // Reset completo dello store
   resetStore: () => void;
@@ -83,6 +85,7 @@ const INITIAL_GEO: GeoSlice = {
 const INITIAL_UI: UiSlice = {
   currentStep: 1,
   result: null,
+  isCompleted: false,
 };
 
 export const useValuationStore = create<ValuationStore>()(
@@ -106,6 +109,7 @@ export const useValuationStore = create<ValuationStore>()(
       // ── Azioni UI ───────────────────────────────────────────────────────────
       setCurrentStep: (step) => set({ currentStep: step }),
       setResult: (result) => set({ result }),
+      setCompleted: (value) => set({ isCompleted: value }),
 
       // ── Reset ───────────────────────────────────────────────────────────────
       resetStore: () =>

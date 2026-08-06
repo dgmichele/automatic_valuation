@@ -24,6 +24,7 @@ export const useFormStepGuard = (currentStep: 1 | 2 | 3) => {
   const [isGuardReady, setIsGuardReady] = useState(false);
 
   const propertyType = useValuationStore((s) => s.property_type);
+  const isCompleted = useValuationStore((s) => s.isCompleted);
 
   // Calcola se lo Step 2 è valido (necessario per accedere allo step 3)
   const step2IsValid = (() => {
@@ -49,6 +50,13 @@ export const useFormStepGuard = (currentStep: 1 | 2 | 3) => {
   })();
 
   useEffect(() => {
+    // Guard prioritario: se il flusso è già stato completato, rimanda alla FallbackPage
+    // per far ripartire il ciclo da zero in modo pulito.
+    if (isCompleted) {
+      navigate('/', { replace: true });
+      return;
+    }
+
     // Step 1: nessun guard — è sempre accessibile
     if (currentStep === 1) {
       setIsGuardReady(true);
@@ -78,7 +86,7 @@ export const useFormStepGuard = (currentStep: 1 | 2 | 3) => {
       setIsGuardReady(true);
       return;
     }
-  }, [currentStep, propertyType, step2IsValid, navigate]);
+  }, [currentStep, propertyType, step2IsValid, navigate, isCompleted]);
 
   return { isGuardReady };
 };

@@ -28,7 +28,7 @@ import type { SelectedAddress } from '../hooks/useNominatim';
 const FallbackPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setGeo } = useValuationStore();
+  const { setGeo, resetFormAndLead, setCompleted } = useValuationStore();
   const { showError } = useToast();
 
   // Stato di lookup in corso (disabilita il pulsante "Valuta" durante la chiamata)
@@ -66,6 +66,10 @@ const FallbackPage = () => {
         address: address.displayName,
         zona,
       });
+
+      // Resetta form, lead e flag completed per iniziare un ciclo fresco
+      resetFormAndLead();
+      setCompleted(false);
 
       // Redirect al primo step del form
       navigate('/form/step-1', { replace: true });

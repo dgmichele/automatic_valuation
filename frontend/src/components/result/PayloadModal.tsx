@@ -7,9 +7,10 @@ import {
   FaPaperPlane,
   FaEnvelopeOpenText,
   FaCheckCircle,
-  FaExternalLinkAlt,
+  FaGoogle,
+  FaMicrosoft
 } from 'react-icons/fa';
-import { MdClose } from 'react-icons/md';
+import { MdClose, MdEmail } from 'react-icons/md';
 import clsx from 'clsx';
 import { leadSchema } from '../../schemas/valuation.schema';
 import type { LeadFormData } from '../../schemas/valuation.schema';
@@ -29,7 +30,7 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
   const storedEmail = useValuationStore((s) => s.email);
   const storedPhone = useValuationStore((s) => s.phone);
   const setLeadFields = useValuationStore((s) => s.setLeadFields);
-  const resetStore = useValuationStore((s) => s.resetStore);
+  const setCompleted = useValuationStore((s) => s.setCompleted);
   const result = useValuationStore((s) => s.result);
 
   // Se result è già presente nello store (valutazione già inviata), imposta direttamente lo stato success
@@ -68,6 +69,7 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
 
     try {
       await Promise.all([submitLeadAsync(data), minDelay]);
+      setCompleted(true);
       setModalStep('success');
     } catch {
       // In caso di errore la mutation mostra il toast e facciamo tornare l'utente al form
@@ -75,18 +77,15 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
     }
   };
 
-  const handleCloseAndRedirect = () => {
-    resetStore();
-    const landingUrl = import.meta.env.VITE_LANDING_URL || 'https://www.bichimmobiliare.it';
-    window.location.href = landingUrl;
-  };
+
 
   return (
     <Dialog
       open={isOpen}
       onClose={() => {
-        // Se siamo nello stato form o success permetti la chiusura, altrimenti blocco durante submitting
-        if (modalStep !== 'submitting') {
+        // Chiusura permessa solo dallo stato form (X button).
+        // In 'submitting' e 'success' il popup è sigillato.
+        if (modalStep === 'form') {
           onClose();
         }
       }}
@@ -292,19 +291,52 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
                   Valutazione inviata
                 </DialogTitle>
                 <p className="font-sans text-base sm:text-lg text-brand-paragraph">
-                  Che aspetti?! Apri la tua email per scoprirla ora!
+                  Che aspetti?! Apri subito la tua email:
                 </p>
               </div>
 
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={handleCloseAndRedirect}
-                  className="w-full py-3.5 px-6 bg-brand-primary text-brand-field font-sans font-bold text-base rounded-xl hover:bg-brand-dark transition duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>Passo e chiudo</span>
-                  <FaExternalLinkAlt className="text-xs" />
-                </button>
+              <div className="pt-2 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Gmail */}
+                  <button
+                    type="button"
+                    onClick={() => { window.open('https://mail.google.com', '_blank'); }}
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-[#EA4335] hover:bg-[#c5372b] text-white font-sans font-bold text-sm rounded-xl transition duration-300 shadow-md cursor-pointer"
+                  >
+                    <FaGoogle className="text-lg shrink-0" />
+                    <span>Gmail</span>
+                  </button>
+
+                  {/* Outlook */}
+                  <button
+                    type="button"
+                    onClick={() => { window.open('https://outlook.live.com', '_blank'); }}
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-[#0078D4] hover:bg-[#005fa3] text-white font-sans font-bold text-sm rounded-xl transition duration-300 shadow-md cursor-pointer"
+                  >
+                    <FaMicrosoft className="text-lg shrink-0" />
+                    <span>Outlook</span>
+                  </button>
+
+                  {/* Libero Mail */}
+                  <button
+                    type="button"
+                    onClick={() => { window.open('https://mail.libero.it', '_blank'); }}
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-[#05b10d] hover:bg-[#0a8f10] text-white font-sans font-bold text-sm rounded-xl transition duration-300 shadow-md cursor-pointer"
+                  >
+                    <MdEmail className="text-lg shrink-0" />
+                    <span>Libero Mail</span>
+                  </button>
+
+                  {/* Virgilio Mail */}
+                  <button
+                    type="button"
+                    onClick={() => { window.open('https://mail.virgilio.it', '_blank'); }}
+                    className="flex items-center justify-center gap-2 py-3 px-4 bg-[#F97316] hover:bg-[#d96210] text-white font-sans font-bold text-sm rounded-xl transition duration-300 shadow-md cursor-pointer"
+                  >
+                    <MdEmail className="text-lg shrink-0" />
+                    <span>Virgilio Mail</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

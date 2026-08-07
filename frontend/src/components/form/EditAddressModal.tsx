@@ -45,12 +45,12 @@ export const EditAddressModal = ({ isOpen, onClose }: EditAddressModalProps) => 
         aria-hidden="true"
       />
 
-      {/* Container per centrare il modal */}
-      <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+      {/* Container per centrare il modal con supporto a scroll per schermi piccoli */}
+      <div className="fixed inset-0 z-50 overflow-y-auto p-4 flex min-h-full items-center justify-center">
         <DialogPanel
           transition
           className={clsx(
-            'w-full max-w-lg transform overflow-hidden rounded-2xl bg-brand-popup-bg p-6 text-left align-middle shadow-xl border border-brand-border',
+            'w-full max-w-lg transform rounded-2xl bg-brand-popup-bg p-6 text-left align-middle shadow-xl border border-brand-border',
             'duration-300 ease-out data-closed:scale-95 data-closed:opacity-0',
           )}
         >
@@ -140,7 +140,7 @@ export const EditAddressModal = ({ isOpen, onClose }: EditAddressModalProps) => 
 
               {/* Indicatore di caricamento della ricerca */}
               {isSearching && (
-                <div className="absolute right-10 top-[38px] -translate-y-1/2">
+                <div className="absolute right-10 top-9.5 -translate-y-1/2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-border border-t-brand-primary" />
                 </div>
               )}
@@ -151,7 +151,7 @@ export const EditAddressModal = ({ isOpen, onClose }: EditAddressModalProps) => 
                   ref={listRef}
                   id="modal-suggestions-list"
                   role="listbox"
-                  className="absolute z-50 mt-1 w-full max-h-60 overflow-y-auto rounded-xl border border-brand-border bg-brand-field shadow-lg"
+                  className="absolute z-50 mt-1 w-full max-h-[40vh] sm:max-h-60 overflow-y-auto rounded-xl border border-brand-border bg-brand-field shadow-lg"
                 >
                   {suggestions.map((suggestion) => (
                     <li

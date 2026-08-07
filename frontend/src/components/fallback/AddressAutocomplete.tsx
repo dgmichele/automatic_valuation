@@ -94,7 +94,7 @@ const AddressAutocomplete = ({
             id="address-suggestions-list"
             role="listbox"
             aria-label="Suggerimenti indirizzo"
-            className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-brand-border bg-brand-field shadow-lg"
+            className="absolute z-50 mt-1 w-full max-h-[40vh] sm:max-h-60 overflow-y-auto rounded-xl border border-brand-border bg-brand-field shadow-lg"
           >
             {suggestions.map((suggestion) => (
               <li

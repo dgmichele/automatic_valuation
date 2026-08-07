@@ -48,7 +48,7 @@ export const FormStepSkeleton: React.FC = () => {
       </div>
 
       {/* Navigazione Sticky fittizia in basso */}
-      <div className="fixed bottom-0 left-0 right-0 bg-brand-field/90 backdrop-blur-md border-t border-brand-border/50 py-4 px-6 z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-brand-field/95 backdrop-blur-md border-t border-brand-border/50 py-4 px-6 z-40 transform-gpu">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <Skeleton className="h-12 w-28 rounded-xl" />
           <Skeleton className="h-12 w-28 rounded-xl" />

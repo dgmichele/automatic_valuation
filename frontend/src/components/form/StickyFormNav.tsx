@@ -30,7 +30,7 @@ export const StickyFormNav: React.FC<StickyFormNavProps> = ({
   isLoading = false,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 bg-brand-field/85 backdrop-blur-md border-t border-brand-border/60 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] py-4 transition-all duration-300">
+    <div className="fixed bottom-0 left-0 right-0 z-30 bg-brand-field/95 backdrop-blur-md border-t border-brand-border/60 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] py-4 transition-all duration-300 transform-gpu">
       <div className="max-w-2xl mx-auto px-6 w-full flex items-center justify-between gap-4">
         {/* Pulsante Indietro */}
         {showBack ? (

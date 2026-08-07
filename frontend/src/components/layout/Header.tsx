@@ -16,7 +16,7 @@ import logoMobile from '../../assets/images/logo-mobile-tablet.png';
 const Header = () => {
   return (
     <header
-      className="w-full bg-brand-field py-2"
+      className="w-full bg-brand-field py-2 transform-gpu"
       style={{ boxShadow: '0 2px 10px 0 rgba(0, 0, 0, 0.16)' }}
     >
       {/* px ridotto per avvicinarsi ai bordi su tablet/PC */}

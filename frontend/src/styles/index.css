@@ -27,10 +27,30 @@
 
 html,
 body {
-  height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-brand-dark);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Sfondo fisso performante (GPU accelerated) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #fffbfc 0%, #fbe4e9 60%, #f7d6de 100%);
+  z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0); /* Forza l'accelerazione hardware */
 }
 
 #root {
@@ -39,11 +59,4 @@ body {
   flex-direction: column;
   margin: 0;
   padding: 0;
-}
-
-body {
-  font-family: var(--font-sans);
-  color: var(--color-brand-dark);
-  background: linear-gradient(135deg, #fffbfc 0%, #fbe4e9 60%, #f7d6de 100%);
-  background-attachment: fixed;
 }

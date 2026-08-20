@@ -38,6 +38,61 @@ const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search';
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3;
 
+/** Coordinate di riferimento del centro di Ivrea per il calcolo della prossimità */
+const IVREA_CENTER = { lat: 45.4667, lon: 7.8767 };
+
+/** Elenco normalizzato dei 19 comuni coperti dall'applicazione (vedi 01_zones.ts) */
+const SUPPORTED_MUNICIPALITIES = [
+  'ivrea',
+  'albiano',
+  'banchette',
+  'bollengo',
+  'borgofranco',
+  'burolo',
+  'cascinette',
+  'chiaverano',
+  'colleretto giacosa',
+  'colleretto',
+  'fiorano',
+  'lessolo',
+  'loranzè',
+  'loranze',
+  'montalto',
+  'palazzo',
+  'pavone',
+  'romano',
+  'salerano',
+  'samone',
+  'strambino',
+];
+
+/** Calcola la distanza approssimativa in km dal centro di Ivrea */
+const getDistanceFromIvrea = (lat: number, lon: number): number => {
+  const dLat = (lat - IVREA_CENTER.lat) * 111.32;
+  const dLon = (lon - IVREA_CENTER.lon) * (111.32 * Math.cos(IVREA_CENTER.lat * (Math.PI / 180)));
+  return Math.sqrt(dLat * dLat + dLon * dLon);
+};
+
+/** Verifica se il suggerimento appartiene a uno dei 19 comuni supportati */
+const isSupportedMunicipality = (s: NominatimSuggestion): boolean => {
+  const municipality = extractMunicipality(s).toLowerCase().trim();
+  const displayName = (s.display_name || '').toLowerCase();
+  return SUPPORTED_MUNICIPALITIES.some(
+    (m) => municipality.includes(m) || displayName.includes(m),
+  );
+};
+
+/** Verifica se l'utente ha menzionato esplicitamente il comune nella query digitata */
+const isMunicipalityMentioned = (query: string, municipality: string): boolean => {
+  if (!municipality || municipality.length < 3) return false;
+  const munClean = municipality.toLowerCase().trim();
+  const qClean = query.toLowerCase().trim();
+  return (
+    qClean.includes(munClean) ||
+    qClean.split(/[\s,]+/).some((token) => token.length >= 4 && munClean.includes(token))
+  );
+};
+
 /**
  * Pulisce la query di ricerca rimuovendo i numeri civici isolati.
  * Mantiene i numeri che fanno parte del nome della via (es: "Via 25 Aprile").
@@ -141,7 +196,7 @@ const buildPrimaryText = (s: NominatimSuggestion): string => {
   return s.display_name.split(',')[0];
 };
 
-/** Costruisce il testo secondario (comune, provincia e cap) per il dropdown */
+/** Costruisce il testo secondario (comune e provincia) per il dropdown, escludendo il CAP */
 const buildSecondaryText = (s: NominatimSuggestion): string => {
   const { address } = s;
   const parts: string[] = [];
@@ -162,10 +217,6 @@ const buildSecondaryText = (s: NominatimSuggestion): string => {
     } else {
       parts.push(city);
     }
-  }
-
-  if (address.postcode) {
-    parts.push(address.postcode);
   }
 
   return parts.length > 0 ? parts.join(' - ') : '';
@@ -233,7 +284,7 @@ export const useNominatim = () => {
           q: cleanedQuery,
           format: 'json',
           addressdetails: '1',
-          limit: '5',
+          limit: '40',
           countrycodes: 'it',
           viewbox,
           bounded: '1', // Forza la ricerca a rimanere rigorosamente nella viewbox del Canavese
@@ -269,12 +320,36 @@ export const useNominatim = () => {
           };
         });
 
+        // Deduplicazione rigorosa per [Via + Comune] per eliminare segmenti duplicati
         const seen = new Set<string>();
         const uniqueData = formattedData.filter(s => {
-          const key = `${s.primaryText?.toLowerCase()}|${s.secondaryText?.toLowerCase()}`;
+          const road = s.address.road ?? s.address.pedestrian ?? s.address.square ?? s.primaryText ?? '';
+          const municipality = extractMunicipality(s);
+          const key = `${road.toLowerCase().trim()}|${municipality.toLowerCase().trim()}`;
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
+        });
+
+        // Ordinamento intelligente a 3 criteri:
+        // 1. Match specifico con il testo digitato (es. se l'utente ha cercato "via roma banchette")
+        // 2. Comuni supportati dall'app (i 19 comuni OMI in cima)
+        // 3. Prossimità chilometrica crescente al centro di Ivrea
+        uniqueData.sort((a, b) => {
+          const munA = extractMunicipality(a);
+          const munB = extractMunicipality(b);
+
+          const matchA = isMunicipalityMentioned(searchQuery, munA) ? 1 : 0;
+          const matchB = isMunicipalityMentioned(searchQuery, munB) ? 1 : 0;
+          if (matchA !== matchB) return matchB - matchA; // Match specifico prima
+
+          const supA = isSupportedMunicipality(a) ? 1 : 0;
+          const supB = isSupportedMunicipality(b) ? 1 : 0;
+          if (supA !== supB) return supB - supA; // Supportati prima
+
+          const distA = getDistanceFromIvrea(parseFloat(a.lat), parseFloat(a.lon));
+          const distB = getDistanceFromIvrea(parseFloat(b.lat), parseFloat(b.lon));
+          return distA - distB; // Più vicini a Ivrea prima
         });
 
         setIsError(false);

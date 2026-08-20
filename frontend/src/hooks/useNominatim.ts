@@ -78,10 +78,67 @@ const extractHouseNumber = (originalQuery: string, selectedRoad: string): string
   return undefined;
 };
 
+/**
+ * Estrae il nome del Comune dal suggerimento Nominatim escludendo frazioni/quartieri.
+ * Gestisce i casi in cui Nominatim etichetta frazioni come "village" o comuni minori come "village".
+ */
+export const extractMunicipality = (s: NominatimSuggestion): string => {
+  const { address, display_name } = s;
+
+  // 1. Se è una città/comune esplicitato in address.city o address.town o address.municipality
+  if (address.city) return address.city;
+  if (address.town) return address.town;
+  if (address.municipality) return address.municipality;
+
+  // 2. Altrimenti analizziamo la gerarchia di display_name (es: "Via Cotonificio, Realizio, Strambino, Torino, ...")
+  if (display_name) {
+    const parts = display_name.split(',').map((p) => p.trim()).filter(Boolean);
+
+    const isPostcode = (str: string) => /^\d{5}$/.test(str);
+    const isCountry = (str: string) => /^(italia|italy)$/i.test(str);
+    const isState = (str: string) =>
+      Boolean(address.state && str.toLowerCase() === address.state.toLowerCase());
+    const isCounty = (str: string) => {
+      const lower = str.toLowerCase();
+      const countyLower = address.county?.toLowerCase() ?? '';
+      return (
+        lower === countyLower ||
+        lower.includes('torino') ||
+        lower.includes('città metropolitana') ||
+        lower.includes('provincia di')
+      );
+    };
+
+    // Filtriamo dalla fine gli elementi amministrativi superiori (Nazione, CAP, Regione, Provincia)
+    const localParts = parts.filter(
+      (p) => !isCountry(p) && !isPostcode(p) && !isState(p) && !isCounty(p),
+    );
+
+    // In Italia, l'ultimo elemento prima della provincia/regione è il Comune effettivo!
+    // Esempio: ["Via Cotonificio", "Realizio", "Strambino"] -> "Strambino"
+    // Esempio: ["Via Ceretti", "Front"] -> "Front"
+    if (localParts.length > 1) {
+      return localParts[localParts.length - 1];
+    }
+    if (localParts.length === 1) {
+      return localParts[0];
+    }
+  }
+
+  // Fallback estremo sui campi disponibili
+  return address.village ?? address.hamlet ?? address.suburb ?? address.county ?? '';
+};
+
 /** Costruisce il testo principale (via) per il dropdown */
 const buildPrimaryText = (s: NominatimSuggestion): string => {
   const { address } = s;
-  return address.road ?? address.pedestrian ?? address.square ?? s.display_name.split(',')[0];
+  const road = address.road ?? address.pedestrian ?? address.square;
+  if (road) return road;
+
+  const city = extractMunicipality(s);
+  if (city) return city;
+
+  return s.display_name.split(',')[0];
 };
 
 /** Costruisce il testo secondario (comune, provincia e cap) per il dropdown */
@@ -89,14 +146,17 @@ const buildSecondaryText = (s: NominatimSuggestion): string => {
   const { address } = s;
   const parts: string[] = [];
 
-  const city = address.city ?? address.town ?? address.village;
+  const city = extractMunicipality(s);
   if (city) {
     let county = address.county;
     if (county) {
       if (county.toLowerCase().includes('torino')) {
         county = 'TO';
       } else {
-        county = county.replace(/città metropolitana di/i, '').trim();
+        county = county
+          .replace(/città metropolitana di/i, '')
+          .replace(/provincia di/i, '')
+          .trim();
       }
       parts.push(`${city} (${county})`);
     } else {
@@ -135,8 +195,10 @@ export const useNominatim = () => {
       parts.push(address.house_number ? `${road} ${address.house_number}` : road);
     }
 
-    const city = address.city ?? address.town ?? address.village ?? address.county;
-    if (city) parts.push(city);
+    const city = extractMunicipality(s);
+    if (city && !parts.includes(city)) {
+      parts.push(city);
+    }
 
     return parts.length > 0 ? parts.join(', ') : s.display_name;
   };

@@ -28,7 +28,8 @@ const valuationSchema = z.object({
   floor: z.string().optional().nullable()
     .transform(val => (val?.trim() ? val.trim() : null)),
   build_year: z.number().optional().nullable().transform(val => val === null ? undefined : val),
-  energy_class: z.string(),
+  energy_class: z.string().optional().nullable()
+    .transform(val => (val?.trim() ? val.trim() : null)),
   heating: z.enum(['Autonomo', 'Centralizzato', 'Assente']),
   // Condizionale: non richiesto per Villa, Casa ind., Casa semi-ind., Negozio
   elevator: z.boolean().optional().nullable()

@@ -31,6 +31,8 @@ interface SelectFieldProps<T extends string = string> {
   onChange: (value: T) => void;
   /** Testo del placeholder (opzione disabilitata di default) */
   placeholder?: string;
+  /** Testo disclaimer mostrato sotto il campo (opzionale) */
+  disclaimer?: string;
 }
 
 export function SelectField<T extends string = string>({
@@ -41,6 +43,7 @@ export function SelectField<T extends string = string>({
   value,
   onChange,
   placeholder = 'Seleziona…',
+  disclaimer,
 }: SelectFieldProps<T>) {
   return (
     <div className="w-full">
@@ -49,7 +52,7 @@ export function SelectField<T extends string = string>({
         htmlFor={id}
         className="flex items-center gap-1.5 font-sans font-semibold text-sm text-brand-dark mb-2"
       >
-        {Icon && <Icon className="w-[18px] h-[18px] text-brand-dark shrink-0" />}
+        {Icon && <Icon className="w-4.5 h-4.5 text-brand-dark shrink-0" />}
         <span>{label}</span>
       </label>
 
@@ -105,6 +108,13 @@ export function SelectField<T extends string = string>({
           </svg>
         </span>
       </div>
+
+      {/* Disclaimer — stile note leggero, colore brand-placeholder identico a NumberField */}
+      {disclaimer && (
+        <p className="mt-1.5 font-sans text-xs text-brand-placeholder leading-snug">
+          {disclaimer}
+        </p>
+      )}
     </div>
   );
 }

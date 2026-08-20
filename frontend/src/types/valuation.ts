@@ -26,7 +26,7 @@ export interface ValuationPayload {
   /** Condizionale: null per Villa, Casa ind., Negozio */
   floor?: string | null;
   build_year?: number;
-  energy_class: string;
+  energy_class?: string | null;
   heating: 'Autonomo' | 'Centralizzato' | 'Assente';
   /** Condizionale: null per Villa, Casa ind., Negozio */
   elevator?: boolean | null;

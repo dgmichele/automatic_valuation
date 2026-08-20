@@ -66,7 +66,6 @@ export const ENERGY_CLASS_OPTIONS: { value: string; label: string }[] = [
   { value: 'E', label: 'E' },
   { value: 'F', label: 'F' },
   { value: 'G', label: 'G' },
-  { value: 'Non saprei', label: 'Non saprei' },
 ];
 
 // ── Riscaldamento (heating) ───────────────────────────────────────────────────

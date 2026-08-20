@@ -30,7 +30,7 @@ export const useLeadSubmission = ({ onSuccess }: UseLeadSubmissionParams = {}) =
         bathrooms: store.bathrooms ?? null,
         floor: store.floor ? String(store.floor).trim() : null,
         build_year: store.build_year ? Number(store.build_year) : undefined,
-        energy_class: store.energy_class!,
+        energy_class: store.energy_class || undefined,
         heating: store.heating!,
         elevator: store.elevator ?? null,
         balconies: store.balconies ?? null,

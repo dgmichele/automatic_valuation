@@ -35,7 +35,7 @@ export interface LeadData {
   bathrooms?: string | null;
   floor?: string | null;
   build_year?: number | null;
-  energy_class: string;
+  energy_class?: string | null;
   heating: string;
   elevator?: boolean | null;
   balconies?: string | null;
@@ -84,14 +84,16 @@ export const syncToCRM = async (
     metri_quadrati: String(leadData.sqm),
     stato_immobile: leadData.condition,
     locali: leadData.rooms,
-    classe_energetica: leadData.energy_class,
     riscaldamento: leadData.heating,
     richieste_per: leadData.intent,
     // Valore medio formattato come stringa leggibile
     valutazione_media: formatEuroCRM(valuationData.avg_value),
   };
 
-  // Campi condizionali: aggiunti solo se non null (dipendono dalla tipologia)
+  // Campi opzionali / condizionali: aggiunti solo se valorizzati
+  if (leadData.energy_class != null && leadData.energy_class !== '') {
+    fields.classe_energetica = leadData.energy_class;
+  }
   if (leadData.bathrooms != null)  fields.bagni                = leadData.bathrooms;
   if (leadData.floor != null)      fields.piano                = leadData.floor;
   if (leadData.build_year != null) fields.anno_di_costruzione = String(leadData.build_year);

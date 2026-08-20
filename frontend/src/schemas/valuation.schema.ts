@@ -73,8 +73,8 @@ export const stepTwoSchema = (propertyType: PropertyType) => {
       .optional()
       .nullable(),
 
-    // energy_class — sempre obbligatorio
-    energy_class: z.string().min(1, 'Seleziona la classe energetica'),
+    // energy_class — opzionale (può non saperlo)
+    energy_class: z.string().optional().nullable(),
 
     // heating — sempre obbligatorio (opzioni filtrate per tipologia in UI)
     heating: z.enum(['Autonomo', 'Centralizzato', 'Assente'], {
@@ -139,7 +139,7 @@ export const valuationPayloadSchema = z.object({
   bathrooms: z.enum(['1', '2', '3', '3+']).optional().nullable(),
   floor: z.string().optional().nullable(),
   build_year: z.number().int().min(1800).max(new Date().getFullYear()).optional().nullable(),
-  energy_class: z.string().min(1),
+  energy_class: z.string().optional().nullable(),
   heating: z.enum(['Autonomo', 'Centralizzato', 'Assente']),
   elevator: z.boolean().optional().nullable(),
   balconies: z.enum(['No', '1', '2+']).optional().nullable(),

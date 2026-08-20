@@ -11,7 +11,7 @@ export interface ValuationPayload {
   // Condizionale: null per tipologie senza piano specifico (Villa, Casa ind., Negozio)
   floor?: string | null;
   build_year?: number;
-  energy_class: string;
+  energy_class?: string | null;
   heating: 'Autonomo' | 'Centralizzato' | 'Assente';
   // Condizionale: null per tipologie senza ascensore (Villa, Casa ind., Negozio)
   elevator?: boolean | null;

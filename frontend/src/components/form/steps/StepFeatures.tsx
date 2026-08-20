@@ -200,8 +200,9 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           icon={BsLightningCharge}
           options={ENERGY_CLASS_OPTIONS}
           value={energyClass}
-          onChange={(v) => setField('energy_class', v)}
+          onChange={(v) => setField('energy_class', v || undefined)}
           placeholder="Seleziona la classe…"
+          disclaimer="Se non lo sai, lascia pure vuoto."
         />
       </div>
 

@@ -174,6 +174,19 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           />
         </div>
       )}
+      
+      {/* ascensore — nascosto per Villa, Casa ind., Casa semi-ind., Negozio */}
+      {isVisible('elevator') && (
+        <div className="mb-4">
+          <ToggleField
+            id="elevator"
+            label="Ascensore:"
+            icon={BsArrowDownUp}
+            value={elevator}
+            onChange={(v) => setField('elevator', v)}
+          />
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════
           SEZIONE 2 — Dettagli costruttivi
@@ -223,20 +236,6 @@ export const StepFeatures: React.FC<StepFeaturesProps> = ({
           SEZIONE 3 — Dotazioni
       ══════════════════════════════════════════════════════════════════ */}
       <SectionHeader title="Dotazioni" />
-
-      {/* ascensore — nascosto per Villa, Casa ind., Casa semi-ind., Negozio */}
-      {isVisible('elevator') && (
-        <div className="mb-4">
-          <ToggleField
-            id="elevator"
-            label="Ascensore:"
-            icon={BsArrowDownUp}
-            value={elevator}
-            onChange={(v) => setField('elevator', v)}
-          />
-        </div>
-      )}
-
 
       {/* balcone — nascosto per Negozio */}
       {isVisible('balconies') && (

@@ -1,4 +1,9 @@
 import React, { useState } from 'react';
+
+// Dichiarazione globale per il Meta Pixel (fbq) – evita errori TypeScript
+declare global {
+  function fbq(action: string, event: string, params?: Record<string, unknown>): void;
+}
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -71,6 +76,10 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
       await Promise.all([submitLeadAsync(data), minDelay]);
       setCompleted(true);
       setModalStep('success');
+      // Traccia la conversione su Meta Pixel solo alla conferma reale del successo
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead');
+      }
     } catch {
       // In caso di errore la mutation mostra il toast e facciamo tornare l'utente al form
       setModalStep('form');

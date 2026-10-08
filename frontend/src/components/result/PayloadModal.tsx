@@ -13,9 +13,10 @@ import {
   FaEnvelopeOpenText,
   FaCheckCircle,
   FaGoogle,
-  FaMicrosoft
+  FaMicrosoft,
+  FaWhatsapp
 } from 'react-icons/fa';
-import { MdClose, MdEmail } from 'react-icons/md';
+import { MdClose, MdEmail, MdWarning, MdErrorOutline } from 'react-icons/md';
 import clsx from 'clsx';
 import { leadSchema } from '../../schemas/valuation.schema';
 import type { LeadFormData } from '../../schemas/valuation.schema';
@@ -44,8 +45,12 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
   );
 
   React.useEffect(() => {
-    if (isOpen && result !== null && modalStep === 'form') {
-      setModalStep('success');
+    if (isOpen) {
+      if (result !== null && modalStep === 'form') {
+        setModalStep('success');
+      }
+    } else {
+      setSubmissionError(null);
     }
   }, [isOpen, result, modalStep]);
 
@@ -66,8 +71,14 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
     },
   });
 
+  const [submissionError, setSubmissionError] = useState<{
+    message: string;
+    isBlocking: boolean;
+  } | null>(null);
+
   const handleFormSubmit = async (data: LeadFormData) => {
     setLeadFields(data);
+    setSubmissionError(null);
     setModalStep('submitting');
 
     const minDelay = new Promise((resolve) => setTimeout(resolve, 2000));
@@ -80,8 +91,30 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
       if (typeof fbq === 'function') {
         fbq('track', 'Lead');
       }
-    } catch {
-      // In caso di errore la mutation mostra il toast e facciamo tornare l'utente al form
+    } catch (err: any) {
+      const code = err?.code || err?.response?.data?.error?.code;
+      const backendMessage = err?.response?.data?.error?.message;
+      const rawMessage = backendMessage || err?.message || '';
+
+      // Determiniamo se l'errore è un blocco definitivo (zona OMI non coperta / OUTSIDE_AREA / NOT_FOUND OMI)
+      const isBlocking =
+        code === 'OUTSIDE_AREA' ||
+        code === 'NOT_FOUND' ||
+        rawMessage.toLowerCase().includes('omi') ||
+        rawMessage.toLowerCase().includes('copert') ||
+        rawMessage.toLowerCase().includes('fuori area');
+
+      const userMessage =
+        backendMessage ||
+        (code === 'OUTSIDE_AREA'
+          ? 'La zona indicata non è coperta dal nostro sistema di stima automatica.'
+          : rawMessage || 'Si è verificato un errore durante la generazione della stima. Riprova tra poco.');
+
+      setSubmissionError({
+        message: userMessage,
+        isBlocking,
+      });
+
       setModalStep('form');
     }
   };
@@ -253,14 +286,67 @@ export const PayloadModal: React.FC<PayloadModalProps> = ({ isOpen, onClose }) =
                   )}
                 </div>
 
-                <div className="pt-3">
-                  <button
-                    type="submit"
-                    className="w-full py-3.5 px-6 bg-brand-primary text-brand-field font-sans font-bold text-base rounded-xl hover:bg-brand-dark transition duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                {/* Box di Errore Inline */}
+                {submissionError && (
+                  <div
+                    className={clsx(
+                      'p-4 rounded-xl border flex items-start gap-3 transition-all duration-200',
+                      submissionError.isBlocking
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-950 dark:text-amber-200'
+                        : 'bg-red-500/10 border-red-500/30 text-red-950 dark:text-red-200',
+                    )}
                   >
-                    <FaPaperPlane className="text-sm" />
-                    <span>Ricevi ora la valutazione</span>
-                  </button>
+                    {submissionError.isBlocking ? (
+                      <MdWarning className="text-amber-500 text-xl shrink-0 mt-0.5" />
+                    ) : (
+                      <MdErrorOutline className="text-red-500 text-xl shrink-0 mt-0.5" />
+                    )}
+                    <div className="space-y-1 text-xs sm:text-sm font-sans">
+                      <p className="font-bold">
+                        {submissionError.isBlocking
+                          ? 'Zona non coperta dal nostro sistema di calcolo'
+                          : 'Impossibile completare la richiesta'}
+                      </p>
+                      <p className="text-brand-paragraph leading-relaxed">
+                        {submissionError.message}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  {submissionError?.isBlocking ? (
+                    // Nel caso di errore bloccante (zona OMI non coperta), nascondiamo il submit e mostriamo CTA alternative
+                    <div className="space-y-2.5">
+                      <a
+                        href="https://wa.me/393408242670?text=Salve,%20vorrei%20essere%20ricontattato%20per%20completare%20la%20valutazione%20del%20mio%20immobile."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 px-4 bg-[#25D366] text-white font-sans font-bold text-sm sm:text-base rounded-xl hover:bg-[#20ba59] transition duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer text-center"
+                      >
+                        <FaWhatsapp className="text-lg" />
+                        <span>Scrivici su WhatsApp</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={onClose}
+                        className="w-full py-2.5 px-4 bg-brand-border/40 text-brand-dark font-sans font-semibold text-xs sm:text-sm rounded-xl hover:bg-brand-border transition duration-200 cursor-pointer text-center"
+                      >
+                        Chiudi
+                      </button>
+                    </div>
+                  ) : (
+                    // Errore transitorio (o stato iniziale): pulsante standard con feedback se riprova
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 px-6 bg-brand-primary text-brand-field font-sans font-bold text-base rounded-xl hover:bg-brand-dark transition duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <FaPaperPlane className="text-sm" />
+                      <span>
+                        {submissionError ? 'Riprova ad inviare la richiesta' : 'Ricevi ora la valutazione'}
+                      </span>
+                    </button>
+                  )}
                 </div>
               </form>
             </div>

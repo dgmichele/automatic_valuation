@@ -3,7 +3,7 @@ import type { Knex } from "knex";
 /**
  * Seed 02 — Valori OMI per zona e tipologia.
  *
- * Dati estratti da TABLES_V2.md (sezione "Zone OMI").
+ * Dati estratti da TABLES_V3.md (sezione "Zone OMI"); aggiunge case semi-indipendenti per Ivrea zona B1.
  * Dipende dal seed 01_zones per le FK.
  */
 export async function seed(knex: Knex): Promise<void> {
@@ -14,6 +14,7 @@ export async function seed(knex: Knex): Promise<void> {
     // ===== IVREA (E379) =====
     { id_zona: "E379/B1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/B1", destinazione: "Residenziale", tipologia: "Villa / Indipendente", min_price: 1350, max_price: 1450 },
+    { id_zona: "E379/B1", destinazione: "Residenziale", tipologia: "Casa semi indipendente", min_price: 1250, max_price: 1350 },
     { id_zona: "E379/B1", destinazione: "Commerciale", tipologia: "Ufficio", min_price: 850, max_price: 950 },
     { id_zona: "E379/B1", destinazione: "Commerciale", tipologia: "Negozio / Vetrinato", min_price: 1050, max_price: 1150 },
     { id_zona: "E379/D1", destinazione: "Residenziale", tipologia: "Appartamento", min_price: 1250, max_price: 1350 },

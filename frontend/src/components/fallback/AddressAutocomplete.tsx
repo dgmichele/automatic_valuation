@@ -29,7 +29,7 @@ const AddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
-    isError,
+    errorMessage,
     handleSelect,
     manualHouseNumber,
     setManualHouseNumber,
@@ -162,20 +162,17 @@ const AddressAutocomplete = ({
       )}
 
       {/* ── Avviso ricerca attiva senza selezione / errore ── */}
-      {query.length >= 3 &&
-        !isLoading &&
-        suggestions.length === 0 &&
-        !selected && (
-          isError ? (
-            <p className="mt-2 font-sans text-xs font-medium text-red-600">
-              Servizio di ricerca indirizzi temporaneamente non disponibile. Riprova tra poco.
-            </p>
-          ) : (
-            <p className="mt-2 font-sans text-xs text-brand-placeholder">
-              Nessun risultato trovato. Prova a essere più specifico.
-            </p>
-          )
-        )}
+      {query.length >= 3 && !isLoading && suggestions.length === 0 && !selected && (
+        errorMessage ? (
+          <p className="mt-2 font-sans text-xs font-medium text-red-600">
+            {errorMessage}
+          </p>
+        ) : (
+          <p className="mt-2 font-sans text-xs text-brand-placeholder">
+            Nessun risultato trovato. Prova a essere più specifico.
+          </p>
+        )
+      )}
 
       {/* ── Pulsante "Valuta" ── */}
       <button

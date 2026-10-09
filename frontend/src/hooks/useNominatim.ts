@@ -6,6 +6,8 @@ export interface NominatimSuggestion {
   display_name: string;
   lat: string;
   lon: string;
+  /** Tipo di entità OSM (es. 'city', 'administrative', 'town', 'road') */
+  type?: string;
   address: {
     house_number?: string;
     road?: string;
@@ -37,6 +39,10 @@ export interface SelectedAddress {
 const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search';
 const DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 3;
+/** Delay aggiuntivo prima della chiamata out-of-zone per non eccedere 1 req/sec di Nominatim */
+const OUT_OF_ZONE_DELAY_MS = 600;
+/** Email identificativa per le policy Nominatim (riduce rischio ban permanente) */
+const NOMINATIM_EMAIL = import.meta.env.VITE_NOMINATIM_EMAIL ?? 'app@bichimmobiliare.it';
 
 /** Coordinate di riferimento del centro di Ivrea per il calcolo della prossimità */
 const IVREA_CENTER = { lat: 45.4667, lon: 7.8767 };
@@ -66,11 +72,25 @@ const SUPPORTED_MUNICIPALITIES = [
   'strambino',
 ];
 
+/** Parole di stop per la tokenizzazione della query nell'analisi out-of-zone */
+const STOP_WORDS = [
+  'via', 'viale', 'corso', 'piazza', 'piazzetta', 'vicolo', 'strada',
+  'stradella', 'largo', 'localita', 'loc', 'frazione', 'fraz',
+  'delle', 'della', 'degli', 'dei', 'del', 'san', 'santa', 'sant',
+];
+
 /** Calcola la distanza approssimativa in km dal centro di Ivrea */
 const getDistanceFromIvrea = (lat: number, lon: number): number => {
   const dLat = (lat - IVREA_CENTER.lat) * 111.32;
   const dLon = (lon - IVREA_CENTER.lon) * (111.32 * Math.cos(IVREA_CENTER.lat * (Math.PI / 180)));
   return Math.sqrt(dLat * dLat + dLon * dLon);
+};
+
+/** Verifica se le coordinate rientrano nella viewbox di riferimento */
+const isInViewbox = (lat: number, lon: number, viewbox: string): boolean => {
+  // viewbox formato: "minLon,maxLat,maxLon,minLat"  (es. "7.7,45.55,8.0,45.35")
+  const [minLon, maxLat, maxLon, minLat] = viewbox.split(',').map(Number);
+  return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
 };
 
 /** Verifica se il suggerimento appartiene a uno dei 19 comuni supportati */
@@ -98,7 +118,6 @@ const isMunicipalityMentioned = (query: string, municipality: string): boolean =
  * Mantiene i numeri che fanno parte del nome della via (es: "Via 25 Aprile").
  */
 const cleanQueryForSearch = (q: string): string => {
-  // Pattern comuni in cui i numeri fanno parte del nome della via
   const streetNamePattern = /\b\d+\b\s*(?:gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre|martiri|giornate|cantoni|alpini|bersaglieri|fanti|pontili|mura)/i;
 
   return q.replace(/\b\d+\s*([a-zA-Z])?\b/g, (match, _letter, offset, fullString) => {
@@ -140,12 +159,10 @@ const extractHouseNumber = (originalQuery: string, selectedRoad: string): string
 export const extractMunicipality = (s: NominatimSuggestion): string => {
   const { address, display_name } = s;
 
-  // 1. Se è una città/comune esplicitato in address.city o address.town o address.municipality
   if (address.city) return address.city;
   if (address.town) return address.town;
   if (address.municipality) return address.municipality;
 
-  // 2. Altrimenti analizziamo la gerarchia di display_name (es: "Via Cotonificio, Realizio, Strambino, Torino, ...")
   if (display_name) {
     const parts = display_name.split(',').map((p) => p.trim()).filter(Boolean);
 
@@ -164,14 +181,10 @@ export const extractMunicipality = (s: NominatimSuggestion): string => {
       );
     };
 
-    // Filtriamo dalla fine gli elementi amministrativi superiori (Nazione, CAP, Regione, Provincia)
     const localParts = parts.filter(
       (p) => !isCountry(p) && !isPostcode(p) && !isState(p) && !isCounty(p),
     );
 
-    // In Italia, l'ultimo elemento prima della provincia/regione è il Comune effettivo!
-    // Esempio: ["Via Cotonificio", "Realizio", "Strambino"] -> "Strambino"
-    // Esempio: ["Via Ceretti", "Front"] -> "Front"
     if (localParts.length > 1) {
       return localParts[localParts.length - 1];
     }
@@ -180,7 +193,6 @@ export const extractMunicipality = (s: NominatimSuggestion): string => {
     }
   }
 
-  // Fallback estremo sui campi disponibili
   return address.village ?? address.hamlet ?? address.suburb ?? address.county ?? '';
 };
 
@@ -227,12 +239,17 @@ export const useNominatim = () => {
   const [suggestions, setSuggestions] = useState<NominatimSuggestion[]>([]);
   const [selected, setSelected] = useState<SelectedAddress | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  /** Messaggio d'errore contestuale (null = nessun errore). Sostituisce il precedente isError booleano. */
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [missingHouseNumber, setMissingHouseNumber] = useState(false);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortController = useRef<AbortController | null>(null);
+  const outOfZoneAbort = useRef<AbortController | null>(null);
+  const outOfZoneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSelectingRef = useRef(false);
+  /** Flag che indica se l'utente ha ripreso a digitare — usato per annullare la chiamata out-of-zone */
+  const isTypingRef = useRef(false);
 
   const viewbox = import.meta.env.VITE_NOMINATIM_VIEWBOX ?? '7.7,45.55,8.0,45.35';
 
@@ -254,16 +271,120 @@ export const useNominatim = () => {
     return parts.length > 0 ? parts.join(', ') : s.display_name;
   };
 
-  /** Esegue la chiamata a Nominatim */
+  /**
+   * Verifica out-of-zone: chiamata Nominatim senza bounded per capire se
+   * l'indirizzo cercato esiste ma è fuori dalla zona operativa.
+   *
+   * Protezioni anti-429:
+   * - Viene invocata solo dopo OUT_OF_ZONE_DELAY_MS dal ritorno della chiamata principale
+   * - Viene annullata se isTypingRef è true (utente ha ripreso a digitare)
+   * - Ha un proprio AbortController separato
+   */
+  const checkOutOfZone = useCallback(
+    async (cleanedQuery: string, originalQuery: string) => {
+      // Guard: se l'utente ha già ripreso a digitare, non lanciamo la chiamata
+      if (isTypingRef.current) return;
+
+      if (outOfZoneAbort.current) {
+        outOfZoneAbort.current.abort();
+      }
+      outOfZoneAbort.current = new AbortController();
+
+      const params = new URLSearchParams({
+        q: cleanedQuery,
+        format: 'json',
+        addressdetails: '1',
+        limit: '5',
+        countrycodes: 'it',
+        email: NOMINATIM_EMAIL,
+      });
+
+      try {
+        const res = await fetch(`${NOMINATIM_BASE}?${params.toString()}`, {
+          signal: outOfZoneAbort.current.signal,
+          headers: { 'Accept-Language': 'it' },
+        });
+        const results: NominatimSuggestion[] = res.ok ? await res.json() : [];
+
+        // Tokenizza la query escludendo parole di stop
+        const queryTokens = originalQuery
+          .toLowerCase()
+          .split(/[\s,]+/)
+          .filter((t) => t.length >= 3 && !STOP_WORDS.includes(t));
+
+        if (!results || results.length === 0) {
+          if (queryTokens.length >= 2 || /\d+/.test(originalQuery)) {
+            setErrorMessage('Nessun indirizzo trovato. Verifica che la via e il comune siano corretti.');
+          }
+          return;
+        }
+
+        const first = results[0];
+        const lat = parseFloat(first.lat);
+        const lon = parseFloat(first.lon);
+
+        const isOutside = !isInViewbox(lat, lon, viewbox) || !isSupportedMunicipality(first);
+        if (!isOutside) {
+          // Trovato dentro la zona: nessun errore
+          return;
+        }
+
+        const addr = first.address;
+        const city = (addr.city || addr.town || addr.municipality || '').toLowerCase();
+        const village = (addr.village || addr.hamlet || '').toLowerCase();
+        const county = (addr.county || '').toLowerCase();
+
+        const placeWords = [
+          ...city.split(/[\s,]+/),
+          ...village.split(/[\s,]+/),
+          ...county.split(/[\s,]+/),
+        ].filter((w) => w.length >= 3);
+
+        const userTypedSpecificPlace = queryTokens.some((token) => placeWords.includes(token));
+        const isDirectCityQuery =
+          first.type === 'city' || first.type === 'administrative' || first.type === 'town';
+
+        if (userTypedSpecificPlace || isDirectCityQuery) {
+          const municipalityName = extractMunicipality(first);
+          let displayCity = municipalityName;
+          if (
+            county &&
+            originalQuery.toLowerCase().includes(county) &&
+            (!displayCity || !originalQuery.toLowerCase().includes(displayCity.toLowerCase()))
+          ) {
+            displayCity = addr.county ?? displayCity;
+          }
+          setErrorMessage(
+            displayCity
+              ? `Il comune/area di ${displayCity} non rientra nella nostra zona operativa.`
+              : "L'indirizzo indicato non rientra nella nostra zona operativa.",
+          );
+        } else if (queryTokens.length >= 2 || /\d+/.test(originalQuery)) {
+          setErrorMessage('Nessun indirizzo trovato. Verifica che la via e il comune siano corretti.');
+        }
+      } catch (err: unknown) {
+        if ((err as Error)?.name !== 'AbortError') {
+          // Errore di rete nella chiamata out-of-zone: ignora silenziosamente
+        }
+      }
+    },
+    [viewbox],
+  );
+
+  /** Esegue la chiamata principale a Nominatim con bounded=1 */
   const fetchSuggestions = useCallback(
     async (searchQuery: string) => {
+      // Annulla qualsiasi out-of-zone pendente prima di una nuova fetch principale
+      if (outOfZoneTimer.current) clearTimeout(outOfZoneTimer.current);
+      if (outOfZoneAbort.current) outOfZoneAbort.current.abort();
+
       if (abortController.current) {
         abortController.current.abort();
       }
       abortController.current = new AbortController();
 
       setIsLoading(true);
-      setIsError(false);
+      setErrorMessage(null);
 
       const timeoutId = setTimeout(() => {
         if (abortController.current) {
@@ -287,7 +408,8 @@ export const useNominatim = () => {
           limit: '40',
           countrycodes: 'it',
           viewbox,
-          bounded: '1', // Forza la ricerca a rimanere rigorosamente nella viewbox del Canavese
+          bounded: '1',
+          email: NOMINATIM_EMAIL,
         });
 
         const response = await fetch(`${NOMINATIM_BASE}?${params.toString()}`, {
@@ -300,29 +422,47 @@ export const useNominatim = () => {
         if (!response.ok) throw new Error('Nominatim non disponibile');
 
         const data: NominatimSuggestion[] = await response.json();
-        
-        // Formattazione testi e de-duplicazione
-        const formattedData = data.map(s => {
-          const road = s.address.road ?? s.address.pedestrian ?? s.address.square ?? '';
-          let primaryText = buildPrimaryText(s);
-          const secondaryText = buildSecondaryText(s);
 
-          // Se l'utente ha inserito un civico nella query originale, lo mostriamo nella tendina
-          const extractedCivic = extractHouseNumber(searchQuery, road);
-          if (extractedCivic) {
-            primaryText = `${primaryText} ${extractedCivic}`;
-          }
+        if (!data || data.length === 0) {
+          setSuggestions([]);
+          // Lancia la verifica out-of-zone con delay anti-429 se l'utente non sta digitando
+          outOfZoneTimer.current = setTimeout(() => {
+            void checkOutOfZone(cleanedQuery, searchQuery);
+          }, OUT_OF_ZONE_DELAY_MS);
+          return;
+        }
 
-          return {
-            ...s,
-            primaryText,
-            secondaryText,
-          };
-        });
+        // ── Filtro strutturale: escludi risultati senza via (es. solo comune) ──
+        const formattedData = data
+          .filter((s) => Boolean(s.address.road ?? s.address.pedestrian ?? s.address.square))
+          .map((s) => {
+            const road = s.address.road ?? s.address.pedestrian ?? s.address.square ?? '';
+            let primaryText = buildPrimaryText(s);
+            const secondaryText = buildSecondaryText(s);
 
-        // Deduplicazione rigorosa per [Via + Comune] per eliminare segmenti duplicati
+            // Se l'utente ha inserito un civico nella query originale, lo mostriamo nella tendina
+            const extractedCivic = extractHouseNumber(searchQuery, road);
+            if (extractedCivic) {
+              primaryText = `${primaryText} ${extractedCivic}`;
+            }
+
+            return {
+              ...s,
+              primaryText,
+              secondaryText,
+            };
+          });
+
+        // Se dopo il filtro address.road non rimane nulla (es: utente ha cercato solo il comune)
+        if (formattedData.length === 0) {
+          setSuggestions([]);
+          setErrorMessage('Devi inserire una Via oltre al Comune (es: Via Roma 5... ).');
+          return;
+        }
+
+        // Deduplicazione rigorosa per [Via + Comune]
         const seen = new Set<string>();
-        const uniqueData = formattedData.filter(s => {
+        const uniqueData = formattedData.filter((s) => {
           const road = s.address.road ?? s.address.pedestrian ?? s.address.square ?? s.primaryText ?? '';
           const municipality = extractMunicipality(s);
           const key = `${road.toLowerCase().trim()}|${municipality.toLowerCase().trim()}`;
@@ -331,53 +471,54 @@ export const useNominatim = () => {
           return true;
         });
 
-        // Ordinamento intelligente a 3 criteri:
-        // 1. Match specifico con il testo digitato (es. se l'utente ha cercato "via roma banchette")
-        // 2. Comuni supportati dall'app (i 19 comuni OMI in cima)
-        // 3. Prossimità chilometrica crescente al centro di Ivrea
+        // Ordinamento intelligente a 3 criteri
         uniqueData.sort((a, b) => {
           const munA = extractMunicipality(a);
           const munB = extractMunicipality(b);
 
           const matchA = isMunicipalityMentioned(searchQuery, munA) ? 1 : 0;
           const matchB = isMunicipalityMentioned(searchQuery, munB) ? 1 : 0;
-          if (matchA !== matchB) return matchB - matchA; // Match specifico prima
+          if (matchA !== matchB) return matchB - matchA;
 
           const supA = isSupportedMunicipality(a) ? 1 : 0;
           const supB = isSupportedMunicipality(b) ? 1 : 0;
-          if (supA !== supB) return supB - supA; // Supportati prima
+          if (supA !== supB) return supB - supA;
 
           const distA = getDistanceFromIvrea(parseFloat(a.lat), parseFloat(a.lon));
           const distB = getDistanceFromIvrea(parseFloat(b.lat), parseFloat(b.lon));
-          return distA - distB; // Più vicini a Ivrea prima
+          return distA - distB;
         });
 
-        setIsError(false);
+        setErrorMessage(null);
         setSuggestions(uniqueData);
       } catch (err: unknown) {
         if ((err as Error)?.name !== 'AbortError') {
           setSuggestions([]);
-          setIsError(true);
+          setErrorMessage('Servizio di ricerca indirizzi temporaneamente non disponibile. Riprova tra poco.');
         }
       } finally {
         clearTimeout(timeoutId);
         setIsLoading(false);
       }
     },
-    [viewbox],
+    [viewbox, checkOutOfZone],
   );
 
   // Debounce per le modifiche della query
   useEffect(() => {
-    // Se la query è cambiata a seguito di una selezione, evitiamo il reset e la nuova chiamata API
     if (isSelectingRef.current) {
       isSelectingRef.current = false;
       return;
     }
 
+    // Segnala che l'utente sta digitando: annulla qualsiasi out-of-zone pendente
+    isTypingRef.current = true;
+    if (outOfZoneTimer.current) clearTimeout(outOfZoneTimer.current);
+    if (outOfZoneAbort.current) outOfZoneAbort.current.abort();
+
     setSelected(null);
     setMissingHouseNumber(false);
-    setIsError(false);
+    setErrorMessage(null);
 
     if (query.length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
@@ -386,6 +527,7 @@ export const useNominatim = () => {
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
+      isTypingRef.current = false;
       void fetchSuggestions(query);
     }, DEBOUNCE_MS);
 
@@ -404,7 +546,6 @@ export const useNominatim = () => {
     const road = suggestion.address.road ?? suggestion.address.pedestrian ?? suggestion.address.square ?? '';
     let houseNumber = suggestion.address.house_number;
     if (!houseNumber) {
-      // Estraiamo il civico dal testo originario digitato
       houseNumber = extractHouseNumber(query, road);
     }
 
@@ -421,6 +562,7 @@ export const useNominatim = () => {
 
     setQuery(displayName);
     setSuggestions([]);
+    setErrorMessage(null);
 
     setSelected({
       lat: parseFloat(suggestion.lat),
@@ -443,8 +585,10 @@ export const useNominatim = () => {
     setSuggestions([]);
     setSelected(null);
     setIsLoading(false);
-    setIsError(false);
+    setErrorMessage(null);
     setMissingHouseNumber(false);
+    if (outOfZoneTimer.current) clearTimeout(outOfZoneTimer.current);
+    if (outOfZoneAbort.current) outOfZoneAbort.current.abort();
   }, []);
 
   return {
@@ -453,7 +597,10 @@ export const useNominatim = () => {
     suggestions,
     selected,
     isLoading,
-    isError,
+    /** Messaggio d'errore contestuale (null = nessun errore). */
+    errorMessage,
+    /** @deprecated Usa errorMessage al posto di isError per messaggi granulari. */
+    isError: errorMessage !== null,
     missingHouseNumber,
     handleSelect,
     reset,

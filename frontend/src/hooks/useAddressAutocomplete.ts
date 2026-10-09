@@ -34,7 +34,7 @@ export const useAddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
-    isError,
+    errorMessage,
     handleSelect,
     reset: resetNominatim,
   } = useNominatim();
@@ -67,29 +67,36 @@ export const useAddressAutocomplete = ({
     }
   }, [selected]);
 
-  /** Pulsante "Valuta" abilitato solo se abbiamo un indirizzo con civico (estratto o inserito a mano) */
+  /**
+   * Pulsante "Valuta" abilitato solo se:
+   * 1. C'è un indirizzo selezionato
+   * 2. Il suggestion selezionato ha address.road (safety net anti solo-comune)
+   * 3. Il civico è presente (estratto da Nominatim o inserito manualmente)
+   * 4. Non è in corso una submission esterna
+   */
   const isValutaDisabled =
     !selected ||
+    !selected.road ||
     isSubmitting ||
     (!selected.hasHouseNumber && !manualHouseNumber.trim());
 
   const handleValutaClick = () => {
-    if (selected) {
-      if (selected.hasHouseNumber) {
-        onValidSelect(selected);
-      } else if (manualHouseNumber.trim()) {
-        const displayNameWithCivic = insertHouseNumberIntoDisplayName(
-          selected.displayName,
-          selected.road,
-          manualHouseNumber.trim(),
-        );
+    if (!selected || !selected.road) return;
 
-        onValidSelect({
-          ...selected,
-          displayName: displayNameWithCivic,
-          hasHouseNumber: true,
-        });
-      }
+    if (selected.hasHouseNumber) {
+      onValidSelect(selected);
+    } else if (manualHouseNumber.trim()) {
+      const displayNameWithCivic = insertHouseNumberIntoDisplayName(
+        selected.displayName,
+        selected.road,
+        manualHouseNumber.trim(),
+      );
+
+      onValidSelect({
+        ...selected,
+        displayName: displayNameWithCivic,
+        hasHouseNumber: true,
+      });
     }
   };
 
@@ -104,7 +111,8 @@ export const useAddressAutocomplete = ({
     suggestions,
     selected,
     isLoading,
-    isError,
+    /** Messaggio d'errore contestuale proveniente da useNominatim (null = nessun errore) */
+    errorMessage,
     handleSelect,
     manualHouseNumber,
     setManualHouseNumber,

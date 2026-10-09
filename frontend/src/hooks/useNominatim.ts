@@ -312,6 +312,18 @@ export const useNominatim = () => {
           .split(/[\s,]+/)
           .filter((t) => t.length >= 3 && !STOP_WORDS.includes(t));
 
+        // Parole che seguono un prefisso stradale (es. "milano" da "Via Milano")
+        // appartengono al nome della via e non devono essere scambiate per un comune
+        const streetPrefixRe = /\b(?:via|viale|corso|piazza|piazzale|piazzetta|vicolo|strada|stradella|largo)\s+([a-zA-Zàèéìòù]+)/gi;
+        const wordsAfterStreetPrefix = new Set<string>();
+        let m: RegExpExecArray | null;
+        while ((m = streetPrefixRe.exec(originalQuery.toLowerCase())) !== null) {
+          wordsAfterStreetPrefix.add(m[1]);
+        }
+
+        const cityTokens = queryTokens.filter((t) => !wordsAfterStreetPrefix.has(t));
+        const hasStreetPrefix = /\b(?:via|viale|corso|piazza|piazzale|piazzetta|vicolo|strada|stradella|largo)\b/i.test(originalQuery);
+
         if (!results || results.length === 0) {
           if (queryTokens.length >= 2 || /\d+/.test(originalQuery)) {
             setErrorMessage('Nessun indirizzo trovato. Verifica che la via e il comune siano corretti.');
@@ -340,9 +352,11 @@ export const useNominatim = () => {
           ...county.split(/[\s,]+/),
         ].filter((w) => w.length >= 3);
 
-        const userTypedSpecificPlace = queryTokens.some((token) => placeWords.includes(token));
+        const userTypedSpecificPlace = cityTokens.some((token) => placeWords.includes(token));
         const isDirectCityQuery =
-          first.type === 'city' || first.type === 'administrative' || first.type === 'town';
+          !hasStreetPrefix &&
+          (first.type === 'city' || first.type === 'administrative' || first.type === 'town') &&
+          queryTokens.some((token) => placeWords.includes(token));
 
         if (userTypedSpecificPlace || isDirectCityQuery) {
           const municipalityName = extractMunicipality(first);
